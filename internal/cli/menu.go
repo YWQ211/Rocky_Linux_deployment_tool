@@ -14,7 +14,7 @@ func (a *App) menu(ctx context.Context) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		fmt.Fprintln(a.Out, "\nRockdev 0.1\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  0. 退出")
+		fmt.Fprintln(a.Out, a.tr("\nRockdev 0.1\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  0. 退出"))
 		choice, err := a.prompt(ctx, "请选择: ")
 		if err == io.EOF {
 			return nil
@@ -30,7 +30,7 @@ func (a *App) menu(ctx context.Context) error {
 			args = []string{"doctor"}
 		case "2":
 			for _, m := range core.Mirrors {
-				fmt.Fprintf(a.Out, "  %s: %s\n", m.ID, m.Name)
+				fmt.Fprintf(a.Out, a.tr("  %s: %s\n"), m.ID, a.tr(m.Name))
 			}
 			id, e := a.prompt(ctx, "镜像名 / auto 自动选择 / check 仅检测: ")
 			if e != nil {
@@ -66,11 +66,11 @@ func (a *App) menu(ctx context.Context) error {
 			}
 			args = []string{"mirror", "restore", id}
 		default:
-			fmt.Fprintln(a.Out, "无效选择。")
+			fmt.Fprintln(a.Out, a.tr("无效选择。"))
 			continue
 		}
 		if err = a.Run(ctx, args); err != nil {
-			fmt.Fprintln(a.Err, "错误:", err)
+			fmt.Fprintln(a.Err, a.tr("错误:"), err)
 		}
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"rockdev/internal/i18n"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ const help = `rockdev 0.1.0 — Rocky Linux 环境初始化工具
 `
 
 type App struct {
+	Language          string
 	In                io.Reader
 	Out, Err          io.Writer
 	Detect            func() (core.System, error)
@@ -92,26 +94,32 @@ func parse(args []string) ([]string, options, error) {
 		case "--dir":
 			i++
 			if i == len(args) {
-				return nil, o, fmt.Errorf("--dir 需要目录")
+				return nil, o, i18n.Errorf("--dir 需要目录")
 			}
 			o.dir = args[i]
 		default:
 			if strings.HasPrefix(args[i], "-") {
-				return nil, o, fmt.Errorf("未知选项 %s", args[i])
+				return nil, o, i18n.Errorf("未知选项 %s", args[i])
 			}
 			pos = append(pos, args[i])
 		}
 	}
 	return pos, o, nil
 }
-func (a *App) Run(ctx context.Context, args []string) error {
+func (a *App) Run(ctx context.Context, args []string) (resultErr error) {
 	a.defaults()
+	var languageErr error
+	args, languageErr = a.selectLanguage(args)
+	if languageErr != nil {
+		return languageErr
+	}
+	defer func() { resultErr = i18n.LocalizeError(a.Language, resultErr) }()
 	if len(args) == 0 {
 		return a.menu(ctx)
 	}
 	for _, s := range args {
 		if s == "--help" || s == "-h" {
-			fmt.Fprint(a.Out, help)
+			fmt.Fprint(a.Out, a.helpText())
 			return nil
 		}
 	}
@@ -124,17 +132,17 @@ func (a *App) Run(ctx context.Context, args []string) error {
 		return err
 	}
 	if len(pos) == 0 {
-		return fmt.Errorf("缺少命令")
+		return i18n.Errorf("缺少命令")
 	}
 	if o.dir != "" && !(len(pos) >= 2 && pos[0] == "repo" && pos[1] == "create") {
-		return fmt.Errorf("--dir 仅适用于 repo create")
+		return i18n.Errorf("--dir 仅适用于 repo create")
 	}
 	if len(pos) == 1 && pos[0] == "doctor" {
 		return a.doctor()
 	}
 	if len(pos) == 2 && pos[0] == "mirror" && pos[1] == "list" {
 		for _, m := range core.Mirrors {
-			fmt.Fprintf(a.Out, "%-10s %s  %s\n", m.ID, m.Name, m.URL)
+			fmt.Fprintf(a.Out, a.tr("%-10s %s  %s\n"), m.ID, a.tr(m.Name), m.URL)
 		}
 		return nil
 	}
@@ -144,7 +152,7 @@ func (a *App) Run(ctx context.Context, args []string) error {
 			if err != nil {
 				path = "未发现主命令"
 			}
-			fmt.Fprintf(a.Out, "%-8s %-24s %s\n", e.ID, e.Name, path)
+			fmt.Fprintf(a.Out, a.tr("%-8s %-24s %s\n"), e.ID, e.Name, a.tr(path))
 		}
 		return nil
 	}
@@ -157,10 +165,10 @@ func (a *App) Run(ctx context.Context, args []string) error {
 	}
 	if len(pos) >= 2 && pos[0] == "mirror" && pos[1] == "check" {
 		if len(pos) > 3 {
-			return fmt.Errorf("mirror check 最多指定一个镜像")
+			return i18n.Errorf("mirror check 最多指定一个镜像")
 		}
 		if o.dry {
-			fmt.Fprintln(a.Out, "预览：检测镜像的 BaseOS/AppStream/extras 元数据")
+			fmt.Fprintln(a.Out, a.tr("预览：检测镜像的 BaseOS/AppStream/extras 元数据"))
 			return nil
 		}
 		id := ""
@@ -176,12 +184,13 @@ func (a *App) Run(ctx context.Context, args []string) error {
 	var p core.Plan
 	m := a.Manager
 	m.System = s
+	m.Translate = a.tr
 	switch {
 	case len(pos) >= 3 && pos[0] == "env" && pos[1] == "install":
 		p, err = m.EnvironmentPlan(pos[2:])
 	case len(pos) >= 3 && pos[0] == "repo" && pos[1] == "create":
 		if o.dir == "" {
-			return fmt.Errorf("repo create 必须指定 --dir")
+			return i18n.Errorf("repo create 必须指定 --dir")
 		}
 		p, err = m.RepositoryPlan(o.dir, pos[2:])
 	case len(pos) == 3 && pos[0] == "mirror" && pos[1] == "use":
@@ -193,39 +202,39 @@ func (a *App) Run(ctx context.Context, args []string) error {
 				return err
 			}
 		}
-		p = core.Plan{Title: "切换 Rocky 基础仓库镜像: " + id, Steps: []core.Step{{Description: "检查目标镜像的版本、架构和仓库元数据", Do: func(ctx context.Context) error {
+		p = core.Plan{Title: a.tr("切换 Rocky 基础仓库镜像: ") + id, Steps: []core.Step{{Description: a.tr("检查目标镜像的版本、架构和仓库元数据"), Do: func(ctx context.Context) error {
 			if id == "auto" {
 				var e error
 				mirror, e = a.checkMirrors(ctx, s, "")
 				return e
 			}
 			return probe(ctx, mirror, s)
-		}}, {Description: "备份并修改基础仓库配置，刷新 DNF 缓存；失败时恢复配置", Do: func(ctx context.Context) error {
+		}}, {Description: a.tr("备份并修改基础仓库配置，刷新 DNF 缓存；失败时恢复配置"), Do: func(ctx context.Context) error {
 			backup, e := m.SwitchMirror(ctx, mirror.URL)
 			if backup != "" {
-				fmt.Fprintln(a.Out, "配置备份 ID:", backup)
+				fmt.Fprintln(a.Out, a.tr("配置备份 ID:"), backup)
 			}
 			return e
 		}}}}
 	case len(pos) == 3 && pos[0] == "mirror" && pos[1] == "restore":
 		id := pos[2]
-		p = core.Plan{Title: "恢复镜像配置备份: " + id, Steps: []core.Step{{Description: "校验备份与当前配置、恢复文件并刷新缓存", Do: func(ctx context.Context) error { return m.Restore(ctx, id) }}}}
+		p = core.Plan{Title: a.tr("恢复镜像配置备份: ") + id, Steps: []core.Step{{Description: a.tr("校验备份与当前配置、恢复文件并刷新缓存"), Do: func(ctx context.Context) error { return m.Restore(ctx, id) }}}}
 	default:
-		return fmt.Errorf("无效命令，请使用 --help")
+		return i18n.Errorf("无效命令，请使用 --help")
 	}
 	if err != nil {
 		return err
 	}
 	p.Print(a.Out)
 	if o.dry {
-		fmt.Fprintln(a.Out, "预览完成：未执行任何修改。")
+		fmt.Fprintln(a.Out, a.tr("预览完成：未执行任何修改。"))
 		return p.Execute(ctx, true)
 	}
 	if !a.CheckRoot() {
-		return fmt.Errorf("此操作需要 root，请使用 sudo rockdev ...")
+		return i18n.Errorf("此操作需要 root，请使用 sudo rockdev ...")
 	}
 	if !a.HasDNF() {
-		return fmt.Errorf("未找到 dnf")
+		return i18n.Errorf("未找到 dnf")
 	}
 	if !o.yes {
 		answer, err := a.prompt(ctx, "执行以上操作？[y/N] ")
@@ -233,7 +242,7 @@ func (a *App) Run(ctx context.Context, args []string) error {
 			return err
 		}
 		if strings.ToLower(answer) != "y" && strings.ToLower(answer) != "yes" {
-			fmt.Fprintln(a.Out, "已取消。")
+			fmt.Fprintln(a.Out, a.tr("已取消。"))
 			return nil
 		}
 	}
@@ -242,7 +251,7 @@ func (a *App) Run(ctx context.Context, args []string) error {
 		return err
 	}
 	defer log.Close()
-	fmt.Fprintln(a.Out, "日志:", log.Name())
+	fmt.Fprintln(a.Out, a.tr("日志:"), log.Name())
 	unlock, err := core.Lock(m.Paths.StateDir)
 	if err != nil {
 		return err
@@ -256,13 +265,13 @@ func (a *App) Run(ctx context.Context, args []string) error {
 	p.Print(log)
 	err = p.Execute(ctx, false)
 	if err != nil {
-		fmt.Fprintln(log, "FAILED:", err)
-		return fmt.Errorf("%w；日志 %s", err, log.Name())
+		fmt.Fprintln(log, "FAILED:", i18n.LocalizeError(a.Language, err))
+		return i18n.Errorf("%w；日志 %s", err, log.Name())
 	}
 	fmt.Fprintln(log, "SUCCESS")
-	fmt.Fprintln(a.Out, "操作完成。")
+	fmt.Fprintln(a.Out, a.tr("操作完成。"))
 	if pos[0] == "repo" {
-		fmt.Fprintln(a.Out, "仓库配置示例:", filepath.Join(o.dir, "rockdev-local.repo"), "（默认禁用，请按 README 验证后启用）")
+		fmt.Fprintln(a.Out, a.tr("仓库配置示例:"), filepath.Join(o.dir, "rockdev-local.repo"), a.tr("（默认禁用，请按 README 验证后启用）"))
 	}
 	return nil
 }
@@ -272,11 +281,11 @@ func (a *App) doctor() error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(a.Out, "系统: %s\nID: %s  版本: %s  架构: %s\nroot: %t  dnf: %t\n", s.Name, s.ID, s.Version, s.Arch, a.CheckRoot(), a.HasDNF())
+	fmt.Fprintf(a.Out, a.tr("系统: %s\nID: %s  版本: %s  架构: %s\nroot: %t  dnf: %t\n"), s.Name, s.ID, s.Version, s.Arch, a.CheckRoot(), a.HasDNF())
 	if err = s.Validate(); err != nil {
 		return err
 	}
-	fmt.Fprintln(a.Out, "系统符合候选适配条件；实际部署兼容性等待 VM 验证。网络请运行 mirror check。")
+	fmt.Fprintln(a.Out, a.tr("系统符合候选适配条件；实际部署兼容性等待 VM 验证。网络请运行 mirror check。"))
 	return nil
 }
 func probe(ctx context.Context, m core.Mirror, s core.System) error {
@@ -295,9 +304,9 @@ func (a *App) checkMirrors(ctx context.Context, s core.System, id string) (core.
 		err := probe(ctx, m, s)
 		elapsed := time.Since(start)
 		if err != nil {
-			fmt.Fprintf(a.Out, "%s 不可用: %v\n", m.ID, err)
+			fmt.Fprintf(a.Out, a.tr("%s 不可用: %v\n"), m.ID, i18n.LocalizeError(a.Language, err))
 		} else {
-			fmt.Fprintf(a.Out, "%s 可用: %s\n", m.ID, elapsed.Round(time.Millisecond))
+			fmt.Fprintf(a.Out, a.tr("%s 可用: %s\n"), m.ID, elapsed.Round(time.Millisecond))
 			if elapsed < bestTime {
 				best = m
 				bestTime = elapsed
@@ -308,7 +317,7 @@ func (a *App) checkMirrors(ctx context.Context, s core.System, id string) (core.
 		}
 	}
 	if best.ID == "" {
-		return best, fmt.Errorf("没有可用镜像，请检查 DNS、网络和目标版本")
+		return best, i18n.Errorf("没有可用镜像，请检查 DNS、网络和目标版本")
 	}
 	return best, nil
 }
@@ -316,7 +325,7 @@ func (a *App) prompt(ctx context.Context, label string) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	fmt.Fprint(a.Out, label)
+	fmt.Fprint(a.Out, a.tr(label))
 	type inputResult struct {
 		line string
 		err  error

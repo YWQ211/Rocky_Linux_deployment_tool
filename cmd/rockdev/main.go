@@ -15,7 +15,7 @@ func main() {
 	defer cancel()
 	app := &cli.App{}
 	if err := app.Run(ctx, os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, "错误:", err)
+		fmt.Fprintln(os.Stderr, app.Text("错误:"), err)
 		os.Exit(1)
 	}
 }

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"fmt"
+	"rockdev/internal/i18n"
 	"strings"
 )
 
@@ -21,7 +21,7 @@ var Environments = []Environment{
 
 func (m Manager) EnvironmentPlan(names []string) (Plan, error) {
 	if len(names) == 0 {
-		return Plan{}, fmt.Errorf("请选择环境：python java go node build")
+		return Plan{}, i18n.Errorf("请选择环境：python java go node build")
 	}
 	var selected []Environment
 	seen := map[string]bool{}
@@ -38,7 +38,7 @@ func (m Manager) EnvironmentPlan(names []string) (Plan, error) {
 			}
 		}
 		if !found {
-			return Plan{}, fmt.Errorf("未知开发环境 %q", name)
+			return Plan{}, i18n.Errorf("未知开发环境 %q", name)
 		}
 	}
 	packages := []string{}
@@ -50,7 +50,7 @@ func (m Manager) EnvironmentPlan(names []string) (Plan, error) {
 			packages = append(packages, pkg)
 		}
 	}
-	p := Plan{Title: "安装环境: " + strings.Join(names, ", ") + "（使用已启用 DNF 仓库版本）"}
+	p := Plan{Title: m.tr("安装环境: ") + strings.Join(names, ", ") + m.tr("（使用已启用 DNF 仓库版本）")}
 	p.Steps = append(p.Steps, m.CommandStep(Command{"dnf", append([]string{"-y", "--setopt=gpgcheck=1", "--setopt=*.gpgcheck=1", "install"}, packages...)}))
 	for _, e := range selected {
 		for _, c := range e.Checks {

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"rockdev/internal/i18n"
 	"strings"
 	"time"
 )
@@ -37,7 +38,7 @@ func (r ExecRunner) Run(ctx context.Context, c Command) error {
 	cmd.Stderr = r.Out
 	// DNF receives -y; subprocesses must never consume menu/confirmation input.
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%s: %w", c.Name, err)
+		return i18n.Errorf("%s: %w", c.Name, err)
 	}
 	return nil
 }
@@ -66,7 +67,7 @@ func (p Plan) Execute(ctx context.Context, dry bool) error {
 			return err
 		}
 		if err := s.Do(ctx); err != nil {
-			return fmt.Errorf("步骤 [%s] 失败: %w", s.Description, err)
+			return i18n.Errorf("步骤 [%s] 失败: %w", s.Description, err)
 		}
 	}
 	return nil
@@ -77,9 +78,10 @@ type Paths struct{ RepoDir, StateDir string }
 func DefaultPaths() Paths { return Paths{RepoDir: "/etc/yum.repos.d", StateDir: "/var/lib/rockdev"} }
 
 type Manager struct {
-	Paths  Paths
-	Runner Runner
-	System System
+	Translate func(string) string
+	Paths     Paths
+	Runner    Runner
+	System    System
 }
 
 func (m Manager) CommandStep(c Command) Step {
@@ -90,7 +92,7 @@ func (m Manager) CommandStep(c Command) Step {
 func AtomicWrite(path string, data []byte, mode os.FileMode) error {
 	if info, err := os.Lstat(path); err == nil {
 		if !info.Mode().IsRegular() {
-			return fmt.Errorf("拒绝覆盖非普通文件 %s", path)
+			return i18n.Errorf("拒绝覆盖非普通文件 %s", path)
 		}
 	} else if !os.IsNotExist(err) {
 		return err
@@ -122,4 +124,11 @@ func NewLog(dir string) (*os.File, error) {
 		return nil, err
 	}
 	return os.OpenFile(filepath.Join(dir, "run-"+time.Now().Format("20060102-150405.000000000")+".log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+}
+
+func (m Manager) tr(key string) string {
+	if m.Translate != nil {
+		return m.Translate(key)
+	}
+	return key
 }

@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"rockdev/internal/i18n"
 	"strings"
 	"time"
 )
@@ -26,7 +27,7 @@ func FindMirror(id string) (Mirror, error) {
 			return m, nil
 		}
 	}
-	return Mirror{}, fmt.Errorf("未知镜像 %q，请运行 mirror list", id)
+	return Mirror{}, i18n.Errorf("未知镜像 %q，请运行 mirror list", id)
 }
 
 func Probe(ctx context.Context, client *http.Client, base string, s System) error {
@@ -38,7 +39,7 @@ func Probe(ctx context.Context, client *http.Client, base string, s System) erro
 		}
 		resp, err := client.Do(req)
 		if err != nil {
-			return fmt.Errorf("%s: %w", url, err)
+			return i18n.Errorf("%s: %w", url, err)
 		}
 		var meta struct {
 			XMLName xml.Name
@@ -52,7 +53,7 @@ func Probe(ctx context.Context, client *http.Client, base string, s System) erro
 		err = xml.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&meta)
 		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("%s: HTTP %d", url, resp.StatusCode)
+			return i18n.Errorf("%s: HTTP %d", url, resp.StatusCode)
 		}
 		primary := false
 		for _, d := range meta.Data {
@@ -61,7 +62,7 @@ func Probe(ctx context.Context, client *http.Client, base string, s System) erro
 			}
 		}
 		if err != nil || meta.XMLName.Local != "repomd" || !primary {
-			return fmt.Errorf("%s: 无效的仓库元数据", url)
+			return i18n.Errorf("%s: 无效的仓库元数据", url)
 		}
 	}
 	return nil
@@ -149,7 +150,7 @@ func (m Manager) SwitchMirror(ctx context.Context, base string) (string, error) 
 			return "", err
 		}
 		if !info.Mode().IsRegular() {
-			return "", fmt.Errorf("拒绝非普通 repo 文件 %s", path)
+			return "", i18n.Errorf("拒绝非普通 repo 文件 %s", path)
 		}
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -177,7 +178,7 @@ func (m Manager) SwitchMirror(ctx context.Context, base string) (string, error) 
 		if managed {
 			return "", nil
 		}
-		return "", fmt.Errorf("没有找到 BaseOS/AppStream/extras 仓库配置")
+		return "", i18n.Errorf("没有找到 BaseOS/AppStream/extras 仓库配置")
 	}
 	id := "backup-" + time.Now().Format("20060102-150405.000000000")
 	dir := filepath.Join(m.Paths.StateDir, "backups", id)
@@ -201,9 +202,9 @@ func (m Manager) SwitchMirror(ctx context.Context, base string) (string, error) 
 			}
 		}
 		if len(errs) > 0 {
-			return id, fmt.Errorf("%w; 配置恢复失败: %s; 备份 %s", cause, strings.Join(errs, "; "), id)
+			return id, i18n.Errorf("%w; 配置恢复失败: %s; 备份 %s", cause, strings.Join(errs, "; "), id)
 		}
-		return id, fmt.Errorf("%w; 原配置已恢复，备份 %s（DNF 缓存需重新刷新）", cause, id)
+		return id, i18n.Errorf("%w; 原配置已恢复，备份 %s（DNF 缓存需重新刷新）", cause, id)
 	}
 	for _, e := range manifest.Entries {
 		if err = AtomicWrite(filepath.Join(m.Paths.RepoDir, e.Name), updates[e.Name], e.Mode); err != nil {
@@ -220,7 +221,7 @@ var backupID = regexp.MustCompile(`^backup-[0-9]{8}-[0-9]{6}\.[0-9]{9}$`)
 
 func (m Manager) Restore(ctx context.Context, id string) error {
 	if !backupID.MatchString(id) {
-		return fmt.Errorf("无效备份 ID")
+		return i18n.Errorf("无效备份 ID")
 	}
 	dir := filepath.Join(m.Paths.StateDir, "backups", id)
 	raw, err := os.ReadFile(filepath.Join(dir, "manifest.json"))
@@ -232,19 +233,19 @@ func (m Manager) Restore(ctx context.Context, id string) error {
 		return err
 	}
 	if len(manifest.Entries) == 0 {
-		return fmt.Errorf("空备份")
+		return i18n.Errorf("空备份")
 	}
 	originals := map[string][]byte{}
 	for _, e := range manifest.Entries {
 		if filepath.Base(e.Name) != e.Name || !strings.HasSuffix(e.Name, ".repo") {
-			return fmt.Errorf("备份文件名无效")
+			return i18n.Errorf("备份文件名无效")
 		}
 		data, err := os.ReadFile(filepath.Join(dir, e.Name))
 		if err != nil {
 			return err
 		}
 		if digest(data) != e.Original {
-			return fmt.Errorf("备份校验失败 %s", e.Name)
+			return i18n.Errorf("备份校验失败 %s", e.Name)
 		}
 		path := filepath.Join(m.Paths.RepoDir, e.Name)
 		info, err := os.Lstat(path)
@@ -252,20 +253,20 @@ func (m Manager) Restore(ctx context.Context, id string) error {
 			return err
 		}
 		if !info.Mode().IsRegular() {
-			return fmt.Errorf("拒绝非普通文件 %s", path)
+			return i18n.Errorf("拒绝非普通文件 %s", path)
 		}
 		current, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 		if digest(current) != e.Updated && digest(current) != e.Original {
-			return fmt.Errorf("%s 已被手动修改，停止恢复", e.Name)
+			return i18n.Errorf("%s 已被手动修改，停止恢复", e.Name)
 		}
 		originals[e.Name] = data
 	}
 	for _, e := range manifest.Entries {
 		if err = AtomicWrite(filepath.Join(m.Paths.RepoDir, e.Name), originals[e.Name], e.Mode); err != nil {
-			return fmt.Errorf("部分恢复，请保留备份 %s: %w", id, err)
+			return i18n.Errorf("部分恢复，请保留备份 %s: %w", id, err)
 		}
 	}
 	return m.Runner.Run(ctx, Command{Name: "dnf", Args: []string{"--refresh", "makecache"}})

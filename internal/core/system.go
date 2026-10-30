@@ -2,9 +2,9 @@ package core
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
+	"rockdev/internal/i18n"
 	"runtime"
 	"strings"
 )
@@ -36,7 +36,7 @@ func ParseSystem(r io.Reader, platform, arch string) (System, error) {
 	s := System{ID: values["ID"], Version: values["VERSION_ID"], Name: values["PRETTY_NAME"], OS: platform, Arch: arch}
 	s.Major = strings.Split(s.Version, ".")[0]
 	if s.ID == "" || s.Version == "" {
-		return s, fmt.Errorf("os-release 缺少 ID 或 VERSION_ID")
+		return s, i18n.Errorf("os-release 缺少 ID 或 VERSION_ID")
 	}
 	return s, nil
 }
@@ -55,13 +55,13 @@ func Detect() (System, error) {
 
 func (s System) Validate() error {
 	if s.OS != "linux" || s.ID != "rocky" {
-		return fmt.Errorf("仅支持 Rocky Linux，当前 %s/%s", s.OS, s.ID)
+		return i18n.Errorf("仅支持 Rocky Linux，当前 %s/%s", s.OS, s.ID)
 	}
 	if s.Major != "8" && s.Major != "9" && s.Major != "10" {
-		return fmt.Errorf("未适配 Rocky %s", s.Major)
+		return i18n.Errorf("未适配 Rocky %s", s.Major)
 	}
 	if s.Arch != "x86_64" && s.Arch != "aarch64" {
-		return fmt.Errorf("未适配架构 %s", s.Arch)
+		return i18n.Errorf("未适配架构 %s", s.Arch)
 	}
 	return nil
 }

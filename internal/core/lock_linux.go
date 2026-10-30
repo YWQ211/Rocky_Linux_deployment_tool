@@ -1,9 +1,9 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"rockdev/internal/i18n"
 	"syscall"
 )
 
@@ -18,7 +18,7 @@ func Lock(dir string) (func(), error) {
 	}
 	if err = syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
 		f.Close()
-		return nil, fmt.Errorf("另一个 rockdev 操作正在执行: %w", err)
+		return nil, i18n.Errorf("另一个 rockdev 操作正在执行: %w", err)
 	}
 	return func() { syscall.Flock(int(f.Fd()), syscall.LOCK_UN); f.Close() }, nil
 }
