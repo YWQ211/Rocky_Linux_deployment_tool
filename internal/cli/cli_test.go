@@ -57,7 +57,7 @@ func testApp(input string) (*App, *bytes.Buffer) {
 	out := &bytes.Buffer{}
 	return &App{In: strings.NewReader(input), Out: out, Err: out, Detect: func() (core.System, error) {
 		return core.System{OS: "linux", ID: "rocky", Major: "9", Arch: "x86_64", Name: "Rocky test"}, nil
-	}, CheckRoot: func() bool { return true }, HasDNF: func() bool { return true }}, out
+	}, Inspect: func(context.Context, []string) ([]core.EnvironmentHealth, error) { return nil, nil }, CheckRoot: func() bool { return true }, HasDNF: func() bool { return true }}, out
 }
 func TestHelpAndInvalidCommands(t *testing.T) {
 	a, out := testApp("")

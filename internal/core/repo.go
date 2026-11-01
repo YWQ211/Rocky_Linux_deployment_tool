@@ -35,7 +35,7 @@ func (m Manager) RepositoryPlan(target string, packages []string) (Plan, error) 
 		return Plan{}, i18n.Errorf("父目录不存在: %s", parent)
 	}
 	p := Plan{Title: m.tr("创建按需 RPM 仓库: ") + target}
-	p.Steps = append(p.Steps, m.CommandStep(Command{"dnf", []string{"-y", "--setopt=gpgcheck=1", "--setopt=*.gpgcheck=1", "install", "dnf-plugins-core", "createrepo_c"}}))
+	p.Steps = append(p.Steps, m.CommandStep(Command{"dnf", []string{"-y", "--setopt=gpgcheck=1", "--setopt=*.gpgcheck=1", "--exclude=python3,python3-libs", "install", "dnf-plugins-core", "createrepo_c"}}))
 	description := m.tr("下载 ") + strings.Join(packages, " ") + m.tr(" 及所有依赖（--resolve --alldeps）；校验签名；生成元数据；原子发布到 ") + target
 	p.Steps = append(p.Steps, Step{Description: description, Do: func(ctx context.Context) error {
 		staging, err := os.MkdirTemp(parent, ".rockdev-repo-*")

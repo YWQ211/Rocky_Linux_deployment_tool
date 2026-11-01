@@ -27,15 +27,19 @@ type ExecRunner struct{ Out io.Writer }
 
 func (r ExecRunner) Capture(ctx context.Context, c Command) (string, error) {
 	var b bytes.Buffer
-	err := (ExecRunner{Out: io.MultiWriter(r.Out, &b)}).Run(ctx, c)
+	fmt.Fprintln(r.Out, "$", c.String())
+	err := executeCommand(ctx, c, io.MultiWriter(r.Out, &b))
 	return b.String(), err
 }
 func (r ExecRunner) Run(ctx context.Context, c Command) error {
 	fmt.Fprintln(r.Out, "$", c.String())
+	return executeCommand(ctx, c, r.Out)
+}
+func executeCommand(ctx context.Context, c Command, out io.Writer) error {
 	cmd := exec.CommandContext(ctx, c.Name, c.Args...)
 	cmd.Env = append(os.Environ(), "LC_ALL=C", "LANG=C")
-	cmd.Stdout = r.Out
-	cmd.Stderr = r.Out
+	cmd.Stdout = out
+	cmd.Stderr = out
 	// DNF receives -y; subprocesses must never consume menu/confirmation input.
 	if err := cmd.Run(); err != nil {
 		return i18n.Errorf("%s: %w", c.Name, err)

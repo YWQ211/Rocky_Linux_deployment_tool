@@ -1,8 +1,8 @@
-# Rockdev 0.1
+# Rockdev 1.0.0
 
 [中文](README.md) · English · [日本語](README.ja.md)
 
-Documentation: [VM guide](docs/vm-quickstart.en.md) · [Test report](docs/test-results.en.md)
+Documentation: [1.0 guide](docs/release-1.0.en.md) · [VM guide](docs/vm-quickstart.en.md) · [1.0 test report](docs/test-results-1.0.en.md)
 
 A Go CLI for Rocky Linux. It checks the system, switches package mirrors, creates a local RPM repository and installs development tools.
 
@@ -27,6 +27,20 @@ export ROCKDEV_LANG=en
 
 ## Commands
 
+Version 1.0 adds environment inspection, package sources, JSON deployment profiles and offline bundle export/import. See the [1.0 guide](docs/release-1.0.en.md) for options and limits.
+
+```bash
+rockdev env check
+rockdev env install python --venv /home/your-user/project/.venv
+sudo rockdev env install python java go --update
+rockdev source use pip tuna
+rockdev profile apply examples/user-sources.json --dry-run
+rockdev bundle export --from /srv/rockdev/python --file "$HOME/python.tar.gz"
+rockdev bundle import --file "$HOME/python.tar.gz" --dir "$HOME/offline-python"
+```
+
+Existing environments, including incomplete ones, are kept unless updating is selected. `--yes` does not authorize updates; use `--update` or choose explicitly. Custom runtimes use their original manager. Python venvs are separate. Source configuration belongs to the current user; sudo configures root.
+
 | Command | Purpose |
 |---|---|
 | `doctor` | Show OS, architecture, root permission and DNF availability |
@@ -38,6 +52,10 @@ export ROCKDEV_LANG=en
 | `env list` | Show development presets and commands found in PATH |
 | `env install <presets...>` | Install development tools and check their commands |
 | `version` | Print the version |
+| `env check [presets...]` | Show paths, versions and potential conflicts |
+| `source list/show/check/use/restore` | Configure and restore package sources |
+| `profile validate/export/apply` | Validate, export and apply JSON profiles |
+| `bundle export/import` | Export, verify and import offline RPM repositories |
 
 Run without arguments to open the menu. Changes require root and confirmation. `--yes` skips confirmation. `--dry-run` prints the plan without network requests, file writes or package commands.
 
@@ -76,7 +94,7 @@ Versions come from enabled DNF repositories. The tool does not select language v
 - Restore checks file hashes and stops if the configuration was edited manually.
 - The local repository is a selected RPM set with `module_hotfixes=1`, not a full distribution mirror. Clients need the corresponding trusted RPM keys.
 - Installed packages are not rolled back on failure. No HTTP repository service or npm/pip/Maven/Go module mirror is included.
-- Supported code paths: Rocky 8/9/10 on x86_64/aarch64. See [test results](docs/test-results.en.md) for what was actually tested.
+- Supported code paths: Rocky 8/9/10 on x86_64/aarch64. See [test results](docs/test-results-1.0.en.md) for what was actually tested.
 
 ## Build
 

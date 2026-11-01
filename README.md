@@ -1,8 +1,8 @@
-# Rockdev 0.1
+# Rockdev 1.0.0
 
 中文 · [English](README.en.md) · [日本語](README.ja.md)
 
-文档：[操作指南](docs/vm-quickstart.md) · [测试报告](docs/test-results.md)
+文档：[1.0 使用说明](docs/release-1.0.md) · [操作指南](docs/vm-quickstart.md) · [1.0 测试报告](docs/test-results-1.0.md)
 
 运行在 Rocky Linux 上的 Go 命令行工具，用于系统检查、镜像切换、本地 RPM 仓库和开发环境安装。
 
@@ -24,6 +24,20 @@ chmod +x rockdev-linux-amd64
 
 ## 命令
 
+1.0 新增环境检查、开发包源、JSON 清单部署、离线包导入导出。完整选项与限制见 [1.0 使用说明](docs/release-1.0.md)。
+
+```bash
+rockdev env check
+rockdev env install python --venv /home/your-user/project/.venv
+sudo rockdev env install python java go --update
+rockdev source use pip tuna
+rockdev profile apply examples/user-sources.json --dry-run
+rockdev bundle export --from /srv/rockdev/python --file "$HOME/python.tar.gz"
+rockdev bundle import --file "$HOME/python.tar.gz" --dir "$HOME/offline-python"
+```
+
+已有环境默认保留，交互时可选择更新；`--yes` 不授权更新，须明确选择或使用 `--update`。不完整的已有环境也先保留。自定义运行时使用原管理器更新；Python venv 单独创建和使用。包源配置属于当前用户，sudo 下属于 root。
+
 | 命令 | 用途 |
 |---|---|
 | `doctor` | 显示系统、架构、root 权限和 DNF 状态 |
@@ -33,7 +47,11 @@ chmod +x rockdev-linux-amd64
 | `mirror restore <备份ID>` | 恢复软件源配置 |
 | `repo create --dir <路径> <包名...>` | 下载 RPM 及依赖，校验签名并生成本地仓库 |
 | `env list` | 显示环境预设及 PATH 中的命令 |
-| `env install <环境...>` | 安装开发工具并检查命令 |
+| `env install <环境...>` | 检查已有环境，按选择安装或更新 |
+| `env check [环境...]` | 显示路径、版本和潜在冲突 |
+| `source list/show/check/use/restore` | 配置和恢复开发包源 |
+| `profile validate/export/apply` | 验证、导出和应用部署清单 |
+| `bundle export/import` | 导出、验证和导入离线 RPM 仓库 |
 | `version` | 显示版本 |
 
 不带参数时打开菜单。修改操作需要 root 并提示确认；`--yes` 跳过确认。`--dry-run` 只展示计划，不联网、不写文件、不执行安装。
@@ -74,7 +92,7 @@ sudo dnf --disablerepo='*' --enablerepo=rockdev-local install python3 python3-pi
 - 恢复前校验文件摘要，遇到手动编辑的配置会停止。
 - 本地仓库是所选 RPM 的集合，使用 `module_hotfixes=1`，客户端需信任对应 RPM 公钥。
 - 安装中断不自动卸载已有软件。不包含 HTTP 仓库服务或 npm/pip/Maven/Go 模块镜像。
-- 代码适配 Rocky 8/9/10、x86_64/aarch64，实际验证范围见[测试结果](docs/test-results.md)。
+- 代码适配 Rocky 8/9/10、x86_64/aarch64，实际验证范围见[测试结果](docs/test-results-1.0.md)。
 
 ## 编译
 

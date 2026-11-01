@@ -1,8 +1,8 @@
-# Rockdev 0.1
+# Rockdev 1.0.0
 
 [中文](README.md) · [English](README.en.md) · 日本語
 
-ドキュメント：[VM 操作手順](docs/vm-quickstart.ja.md) · [テスト結果](docs/test-results.ja.md)
+ドキュメント：[1.0 操作説明](docs/release-1.0.ja.md) · [VM 操作手順](docs/vm-quickstart.ja.md) · [1.0 テスト結果](docs/test-results-1.0.ja.md)
 
 Rocky Linux 向けの Go 製 CLI ツールです。システム確認、パッケージミラーの変更、ローカル RPM リポジトリの作成、開発環境のインストールを行います。
 
@@ -27,6 +27,20 @@ export ROCKDEV_LANG=ja
 
 ## コマンド
 
+1.0 では環境診断、取得元の設定、JSON によるデプロイ、オフラインパッケージ入出力を追加しました。詳細は [1.0 操作説明](docs/release-1.0.ja.md)を参照してください。
+
+```bash
+rockdev env check
+rockdev env install python --venv /home/your-user/project/.venv
+sudo rockdev env install python java go --update
+rockdev source use pip tuna
+rockdev profile apply examples/user-sources.json --dry-run
+rockdev bundle export --from /srv/rockdev/python --file "$HOME/python.tar.gz"
+rockdev bundle import --file "$HOME/python.tar.gz" --dir "$HOME/offline-python"
+```
+
+不完全な環境も含め、既存環境は更新を選択するまで維持します。`--yes` は更新の許可ではありません。`--update` または対話で明示してください。カスタム環境は元の管理ツールを使い、Python venv は独立して扱います。取得元は現在のユーザー用で、sudo 使用時は root 用です。
+
 | コマンド | 内容 |
 |---|---|
 | `doctor` | OS、アーキテクチャ、root 権限、DNF の有無を表示 |
@@ -38,6 +52,10 @@ export ROCKDEV_LANG=ja
 | `env list` | 開発環境の一覧と PATH 上のコマンドを表示 |
 | `env install <presets...>` | 開発環境をインストールしてコマンドを確認 |
 | `version` | バージョンを表示 |
+| `env check [環境...]` | パス、バージョン、競合候補を表示 |
+| `source list/show/check/use/restore` | 取得元の設定と復元 |
+| `profile validate/export/apply` | JSON 設定の検証、保存、適用 |
+| `bundle export/import` | オフライン RPM リポジトリの入出力 |
 
 引数なしで対話メニューを開きます。変更には root 権限と実行確認が必要です。`--yes` は確認を省略します。`--dry-run` は予定を表示するだけで、通信、ファイル変更、インストールは行いません。
 
@@ -76,7 +94,7 @@ sudo dnf --disablerepo='*' --enablerepo=rockdev-local install python3 python3-pi
 - 復元時はハッシュを確認し、手動編集された設定の上書きを防ぎます。
 - ローカルリポジトリは `module_hotfixes=1` を使う選択済み RPM の集合です。完全なディストリビューションミラーではありません。クライアントには対応する信頼済み RPM 鍵が必要です。
 - 途中で失敗しても、インストール済みパッケージの自動削除は行いません。HTTP 配信や npm/pip/Maven/Go モジュールのミラーは含みません。
-- コードの対応範囲は Rocky 8/9/10、x86_64/aarch64 です。実際の検証範囲は[テスト結果](docs/test-results.ja.md)を参照してください。
+- コードの対応範囲は Rocky 8/9/10、x86_64/aarch64 です。実際の検証範囲は[テスト結果](docs/test-results-1.0.ja.md)を参照してください。
 
 ## ビルド
 

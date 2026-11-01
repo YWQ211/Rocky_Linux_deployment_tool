@@ -14,7 +14,7 @@ func (a *App) menu(ctx context.Context) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		fmt.Fprintln(a.Out, a.tr("\nRockdev 0.1\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  0. 退出"))
+		fmt.Fprintln(a.Out, a.tr("\nRockdev 1.0\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  7. 环境健康检查\n  8. 开发包源配置\n  9. 配置清单部署\n  10. 离线包导出或导入\n  0. 退出"))
 		choice, err := a.prompt(ctx, "请选择: ")
 		if err == io.EOF {
 			return nil
@@ -65,6 +65,54 @@ func (a *App) menu(ctx context.Context) error {
 				return menuInputError(e)
 			}
 			args = []string{"mirror", "restore", id}
+		case "7":
+			args = []string{"env", "check"}
+		case "8":
+			tool, e := a.prompt(ctx, "Source tool (pip/npm/maven/go): ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			if err := a.Run(ctx, []string{"source", "list", tool}); err != nil {
+				fmt.Fprintln(a.Err, err)
+				continue
+			}
+			provider, e := a.prompt(ctx, "Source provider: ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			args = []string{"source", "use", tool, provider}
+		case "9":
+			action, e := a.prompt(ctx, "Profile action (validate/apply/export): ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			file, e := a.prompt(ctx, "Profile file: ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			if action == "export" {
+				args = []string{"profile", "export", "--file", file}
+			} else {
+				args = []string{"profile", action, file}
+			}
+		case "10":
+			action, e := a.prompt(ctx, "Bundle action (export/import): ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			file, e := a.prompt(ctx, "Bundle archive: ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			dir, e := a.prompt(ctx, "Repository directory: ")
+			if e != nil {
+				return menuInputError(e)
+			}
+			flag := "--dir"
+			if action == "export" {
+				flag = "--from"
+			}
+			args = []string{"bundle", action, "--file", file, flag, dir}
 		default:
 			fmt.Fprintln(a.Out, a.tr("无效选择。"))
 			continue

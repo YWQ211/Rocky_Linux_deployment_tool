@@ -25,6 +25,18 @@ var catalog = func() map[string][2]string {
 }()
 
 func Text(lang, key string) string {
+	if lang != "en" {
+		for original, row := range catalog {
+			if row[0] == key {
+				if lang == "zh" {
+					return original
+				}
+				if lang == "ja" {
+					return row[1]
+				}
+			}
+		}
+	}
 	if row, ok := catalog[key]; ok {
 		if lang == "en" {
 			return row[0]
@@ -60,7 +72,7 @@ type translatedError struct {
 func (e translatedError) Error() string { return e.message }
 func (e translatedError) Unwrap() error { return e.error }
 func LocalizeError(lang string, err error) error {
-	if err == nil || lang == "zh" {
+	if err == nil {
 		return err
 	}
 	if e, ok := err.(*messageError); ok {

@@ -17,7 +17,7 @@ import (
 	"rockdev/internal/core"
 )
 
-const Version = "0.1.0"
+const Version = "1.0.0"
 const help = `rockdev 0.1.0 — Rocky Linux 环境初始化工具
 
 用法（无参数打开交互菜单）：
@@ -39,6 +39,8 @@ const help = `rockdev 0.1.0 — Rocky Linux 环境初始化工具
 
 type App struct {
 	Language          string
+	Home              string
+	Inspect           func(context.Context, []string) ([]core.EnvironmentHealth, error)
 	In                io.Reader
 	Out, Err          io.Writer
 	Detect            func() (core.System, error)
@@ -75,11 +77,18 @@ func (a *App) defaults() {
 	if a.input == nil {
 		a.input = bufio.NewReader(a.In)
 	}
+	if a.Inspect == nil {
+		a.Inspect = func(ctx context.Context, names []string) ([]core.EnvironmentHealth, error) {
+			return (core.HealthInspector{Translate: a.tr}).Inspect(ctx, names)
+		}
+	}
 }
 
 type options struct {
-	dry, yes bool
-	dir      string
+	dry, yes              bool
+	update                bool
+	userScope             bool
+	dir, file, from, venv string
 }
 
 func parse(args []string) ([]string, options, error) {
@@ -91,6 +100,22 @@ func parse(args []string) ([]string, options, error) {
 			o.dry = true
 		case "--yes", "-y":
 			o.yes = true
+		case "--update":
+			o.update = true
+		case "--file", "--from", "--venv":
+			key := args[i]
+			i++
+			if i == len(args) {
+				return nil, o, i18n.Errorf("Missing value for %s", key)
+			}
+			switch key {
+			case "--file":
+				o.file = args[i]
+			case "--from":
+				o.from = args[i]
+			case "--venv":
+				o.venv = args[i]
+			}
 		case "--dir":
 			i++
 			if i == len(args) {
@@ -133,6 +158,9 @@ func (a *App) Run(ctx context.Context, args []string) (resultErr error) {
 	}
 	if len(pos) == 0 {
 		return i18n.Errorf("缺少命令")
+	}
+	if handled, err := a.releaseCommand(ctx, pos, o); handled {
+		return err
 	}
 	if o.dir != "" && !(len(pos) >= 2 && pos[0] == "repo" && pos[1] == "create") {
 		return i18n.Errorf("--dir 仅适用于 repo create")

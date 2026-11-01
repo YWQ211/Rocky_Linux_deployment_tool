@@ -1,84 +1,902 @@
 [
-["--dir 需要目录","--dir requires a directory","--dir にディレクトリを指定してください"],
-["未知选项 %s","Unknown option %s","不明なオプション %s"],
-["缺少命令","Missing command","コマンドが指定されていません"],
-["--dir 仅适用于 repo create","--dir is only valid for repo create","--dir は repo create でのみ使用できます"],
-["未发现主命令","Command not found","コマンドが見つかりません"],
-["mirror check 最多指定一个镜像","mirror check accepts at most one mirror","mirror check に指定できるミラーは一つです"],
-["预览：检测镜像的 BaseOS/AppStream/extras 元数据","Dry run: check BaseOS/AppStream/extras metadata","プレビュー：BaseOS/AppStream/extras のメタデータを確認"],
-["repo create 必须指定 --dir","repo create requires --dir","repo create には --dir が必要です"],
-["切换 Rocky 基础仓库镜像: ","Switch Rocky repository mirror: ","Rocky リポジトリのミラーを変更: "],
-["检查目标镜像的版本、架构和仓库元数据","Check mirror version, architecture and repository metadata","ミラーのバージョン、アーキテクチャ、メタデータを確認"],
-["备份并修改基础仓库配置，刷新 DNF 缓存；失败时恢复配置","Back up repository configuration, switch mirror and refresh DNF cache; restore on failure","設定をバックアップしてミラーを変更し、DNF キャッシュを更新。失敗時は設定を復元"],
-["配置备份 ID:","Configuration backup ID:","設定バックアップ ID:"],
-["恢复镜像配置备份: ","Restore mirror configuration: ","ミラー設定を復元: "],
-["校验备份与当前配置、恢复文件并刷新缓存","Verify backup and current files, restore configuration and refresh cache","バックアップと現在の設定を確認し、復元してキャッシュを更新"],
-["无效命令，请使用 --help","Invalid command; use --help","無効なコマンドです。--help を参照してください"],
-["预览完成：未执行任何修改。","Dry run complete. No changes made.","プレビューが完了しました。変更は行っていません。"],
-["此操作需要 root，请使用 sudo rockdev ...","This operation requires root; use sudo rockdev ...","この操作には root 権限が必要です。sudo rockdev ... を使用してください"],
-["未找到 dnf","dnf not found","dnf が見つかりません"],
-["执行以上操作？[y/N] ","Proceed? [y/N] ","実行しますか？[y/N] "],
-["已取消。","Cancelled.","キャンセルしました。"],
-["日志:","Log:","ログ:"],
-["%w；日志 %s","%w; log: %s","%w；ログ: %s"],
-["操作完成。","Done.","完了しました。"],
-["仓库配置示例:","Repository configuration:","リポジトリ設定例:"],
-["（默认禁用，请按 README 验证后启用）","(disabled by default; verify using README before enabling)","（初期状態は無効です。README に従って確認後に有効化してください）"],
-["系统: %s\nID: %s  版本: %s  架构: %s\nroot: %t  dnf: %t\n","System: %s\nID: %s  Version: %s  Architecture: %s\nroot: %t  dnf: %t\n","システム: %s\nID: %s  バージョン: %s  アーキテクチャ: %s\nroot: %t  dnf: %t\n"],
-["系统符合候选适配条件；实际部署兼容性等待 VM 验证。网络请运行 mirror check。","System checks passed. Run mirror check to check network access.","システムの確認が完了しました。ネットワークは mirror check で確認できます。"],
-["%s 不可用: %v\n","%s unavailable: %v\n","%s は利用できません: %v\n"],
-["%s 可用: %s\n","%s available: %s\n","%s は利用可能: %s\n"],
-["没有可用镜像，请检查 DNS、网络和目标版本","No mirror available; check DNS, network and target version","利用可能なミラーがありません。DNS、ネットワーク、対象バージョンを確認してください"],
-["\nRockdev 0.1\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  0. 退出","\nRockdev 0.1\n  1. System check\n  2. Check or switch mirrors\n  3. Create local RPM repository\n  4. Install development environments\n  5. List development environments\n  6. Restore mirror configuration\n  0. Exit","\nRockdev 0.1\n  1. システム確認\n  2. ミラー確認・変更\n  3. ローカル RPM リポジトリ作成\n  4. 開発環境のインストール\n  5. 開発環境の一覧\n  6. ミラー設定の復元\n  0. 終了"],
-["请选择: ","Select: ","選択してください: "],
-["镜像名 / auto 自动选择 / check 仅检测: ","Mirror name / auto / check: ","ミラー名 / auto 自動選択 / check 確認のみ: "],
-["新仓库绝对路径（父目录须已存在）: ","New repository absolute path (parent must exist): ","新しいリポジトリの絶対パス（親ディレクトリが必要）: "],
-["RPM 包名，用空格分隔: ","RPM package names, separated by spaces: ","RPM パッケージ名（空白区切り）: "],
-["环境 python java go node build（空格分隔）: ","Environments: python java go node build (space-separated): ","環境 python java go node build（空白区切り）: "],
-["备份 ID: ","Backup ID: ","バックアップ ID: "],
-["无效选择。","Invalid selection.","無効な選択です。"],
-["错误:","Error:","エラー:"],
-["os-release 缺少 ID 或 VERSION_ID","os-release is missing ID or VERSION_ID","os-release に ID または VERSION_ID がありません"],
-["仅支持 Rocky Linux，当前 %s/%s","Only Rocky Linux is supported; detected %s/%s","Rocky Linux のみ対応しています。検出結果: %s/%s"],
-["未适配 Rocky %s","Unsupported Rocky version %s","未対応の Rocky バージョン %s"],
-["未适配架构 %s","Unsupported architecture %s","未対応のアーキテクチャ %s"],
-["请选择环境：python java go node build","Select environments: python java go node build","環境を選択してください：python java go node build"],
-["未知开发环境 %q","Unknown environment %q","不明な開発環境 %q"],
-["安装环境: ","Install environments: ","開発環境をインストール: "],
-["（使用已启用 DNF 仓库版本）"," (versions from enabled DNF repositories)","（有効な DNF リポジトリのバージョンを使用）"],
-["步骤 [%s] 失败: %w","Step [%s] failed: %w","手順 [%s] が失敗しました: %w"],
-["拒绝覆盖非普通文件 %s","Refusing to overwrite non-regular file %s","通常ファイル以外は上書きできません: %s"],
-["仓库目录必须是绝对路径，不能包含换行或变量","Repository path must be absolute, without newlines or variables","リポジトリには改行や変数を含まない絶対パスを指定してください"],
-["目标已存在，使用新目录以保护已有仓库: %s","Target exists; choose a new directory: %s","対象が存在します。新しいディレクトリを指定してください: %s"],
-["至少指定一个 RPM 包名","Specify at least one RPM package","RPM パッケージ名を一つ以上指定してください"],
-["无效 RPM 包名 %q（不接受 URL、选项和通配符）","Invalid RPM package %q (URLs, options and wildcards are not accepted)","無効な RPM パッケージ名 %q（URL、オプション、ワイルドカードは使用できません）"],
-["父目录不存在: %s","Parent directory does not exist: %s","親ディレクトリがありません: %s"],
-["创建按需 RPM 仓库: ","Create local RPM repository: ","ローカル RPM リポジトリを作成: "],
-["下载 ","Download ","ダウンロード "],
-[" 及所有依赖（--resolve --alldeps）；校验签名；生成元数据；原子发布到 "," and all dependencies (--resolve --alldeps); verify signatures, generate metadata and publish to "," と全依存関係（--resolve --alldeps）。署名を検証し、メタデータを生成して公開: "],
-["没有下载到 RPM 包","No RPM packages downloaded","RPM パッケージがダウンロードされていません"],
-["仓库元数据未生成: %w","Repository metadata missing: %w","リポジトリのメタデータが生成されていません: %w"],
-["目标目录在执行期间出现，停止发布: %s","Target appeared during execution; publication stopped: %s","実行中に対象ディレクトリが作成されたため、公開を中止しました: %s"],
-["运行器不支持签名验证","Runner does not support signature verification","実行環境が署名検証に対応していません"],
-["RPM 签名不可信: %s","Untrusted RPM signature: %s","信頼できない RPM 署名: %s"],
-["RPM 缺少有效签名: %s","RPM has no valid signature: %s","有効な署名がない RPM: %s"],
-["系统修改仅支持 Linux","System changes require Linux","システムの変更には Linux が必要です"],
-["Rocky 官方","Rocky official","Rocky 公式"],
-["阿里云","Aliyun","阿里雲"],
-["清华 TUNA","Tsinghua TUNA","清華大学 TUNA"],
-["中国科大","USTC","中国科学技術大学"],
-["未知镜像 %q，请运行 mirror list","Unknown mirror %q; run mirror list","不明なミラー %q。mirror list を実行してください"],
-["%s: 无效的仓库元数据","%s: invalid repository metadata","%s: リポジトリのメタデータが無効です"],
-["拒绝非普通 repo 文件 %s","Refusing non-regular repo file %s","通常ファイル以外の repo は使用できません: %s"],
-["没有找到 BaseOS/AppStream/extras 仓库配置","No BaseOS/AppStream/extras configuration found","BaseOS/AppStream/extras の設定が見つかりません"],
-["%w; 配置恢复失败: %s; 备份 %s","%w; configuration restore failed: %s; backup %s","%w; 設定の復元に失敗: %s; バックアップ %s"],
-["%w; 原配置已恢复，备份 %s（DNF 缓存需重新刷新）","%w; original configuration restored; backup %s (refresh DNF cache)","%w; 元の設定を復元しました。バックアップ %s（DNF キャッシュの更新が必要です）"],
-["无效备份 ID","Invalid backup ID","無効なバックアップ ID"],
-["空备份","Empty backup","バックアップが空です"],
-["备份文件名无效","Invalid backup filename","無効なバックアップファイル名"],
-["备份校验失败 %s","Backup checksum mismatch: %s","バックアップのチェックサムが一致しません: %s"],
-["拒绝非普通文件 %s","Refusing non-regular file %s","通常ファイル以外は使用できません: %s"],
-["%s 已被手动修改，停止恢复","%s was manually edited; restore stopped","%s は手動で変更されています。復元を中止しました"],
-["部分恢复，请保留备份 %s: %w","Partial restore; keep backup %s: %w","一部のみ復元されました。バックアップ %s を保管してください: %w"],
-["另一个 rockdev 操作正在执行: %w","Another rockdev operation is running: %w","別の rockdev 操作が実行中です: %w"]
+  [
+    "--dir 需要目录",
+    "--dir requires a directory",
+    "--dir にディレクトリを指定してください"
+  ],
+  [
+    "未知选项 %s",
+    "Unknown option %s",
+    "不明なオプション %s"
+  ],
+  [
+    "缺少命令",
+    "Missing command",
+    "コマンドが指定されていません"
+  ],
+  [
+    "--dir 仅适用于 repo create",
+    "--dir is only valid for repo create",
+    "--dir は repo create でのみ使用できます"
+  ],
+  [
+    "未发现主命令",
+    "Command not found",
+    "コマンドが見つかりません"
+  ],
+  [
+    "mirror check 最多指定一个镜像",
+    "mirror check accepts at most one mirror",
+    "mirror check に指定できるミラーは一つです"
+  ],
+  [
+    "预览：检测镜像的 BaseOS/AppStream/extras 元数据",
+    "Dry run: check BaseOS/AppStream/extras metadata",
+    "プレビュー：BaseOS/AppStream/extras のメタデータを確認"
+  ],
+  [
+    "repo create 必须指定 --dir",
+    "repo create requires --dir",
+    "repo create には --dir が必要です"
+  ],
+  [
+    "切换 Rocky 基础仓库镜像: ",
+    "Switch Rocky repository mirror: ",
+    "Rocky リポジトリのミラーを変更: "
+  ],
+  [
+    "检查目标镜像的版本、架构和仓库元数据",
+    "Check mirror version, architecture and repository metadata",
+    "ミラーのバージョン、アーキテクチャ、メタデータを確認"
+  ],
+  [
+    "备份并修改基础仓库配置，刷新 DNF 缓存；失败时恢复配置",
+    "Back up repository configuration, switch mirror and refresh DNF cache; restore on failure",
+    "設定をバックアップしてミラーを変更し、DNF キャッシュを更新。失敗時は設定を復元"
+  ],
+  [
+    "配置备份 ID:",
+    "Configuration backup ID:",
+    "設定バックアップ ID:"
+  ],
+  [
+    "恢复镜像配置备份: ",
+    "Restore mirror configuration: ",
+    "ミラー設定を復元: "
+  ],
+  [
+    "校验备份与当前配置、恢复文件并刷新缓存",
+    "Verify backup and current files, restore configuration and refresh cache",
+    "バックアップと現在の設定を確認し、復元してキャッシュを更新"
+  ],
+  [
+    "无效命令，请使用 --help",
+    "Invalid command; use --help",
+    "無効なコマンドです。--help を参照してください"
+  ],
+  [
+    "预览完成：未执行任何修改。",
+    "Dry run complete. No changes made.",
+    "プレビューが完了しました。変更は行っていません。"
+  ],
+  [
+    "此操作需要 root，请使用 sudo rockdev ...",
+    "This operation requires root; use sudo rockdev ...",
+    "この操作には root 権限が必要です。sudo rockdev ... を使用してください"
+  ],
+  [
+    "未找到 dnf",
+    "dnf not found",
+    "dnf が見つかりません"
+  ],
+  [
+    "执行以上操作？[y/N] ",
+    "Proceed? [y/N] ",
+    "実行しますか？[y/N] "
+  ],
+  [
+    "已取消。",
+    "Cancelled.",
+    "キャンセルしました。"
+  ],
+  [
+    "日志:",
+    "Log:",
+    "ログ:"
+  ],
+  [
+    "%w；日志 %s",
+    "%w; log: %s",
+    "%w；ログ: %s"
+  ],
+  [
+    "操作完成。",
+    "Done.",
+    "完了しました。"
+  ],
+  [
+    "仓库配置示例:",
+    "Repository configuration:",
+    "リポジトリ設定例:"
+  ],
+  [
+    "（默认禁用，请按 README 验证后启用）",
+    "(disabled by default; verify using README before enabling)",
+    "（初期状態は無効です。README に従って確認後に有効化してください）"
+  ],
+  [
+    "系统: %s\nID: %s  版本: %s  架构: %s\nroot: %t  dnf: %t\n",
+    "System: %s\nID: %s  Version: %s  Architecture: %s\nroot: %t  dnf: %t\n",
+    "システム: %s\nID: %s  バージョン: %s  アーキテクチャ: %s\nroot: %t  dnf: %t\n"
+  ],
+  [
+    "系统符合候选适配条件；实际部署兼容性等待 VM 验证。网络请运行 mirror check。",
+    "System checks passed. Run mirror check to check network access.",
+    "システムの確認が完了しました。ネットワークは mirror check で確認できます。"
+  ],
+  [
+    "%s 不可用: %v\n",
+    "%s unavailable: %v\n",
+    "%s は利用できません: %v\n"
+  ],
+  [
+    "%s 可用: %s\n",
+    "%s available: %s\n",
+    "%s は利用可能: %s\n"
+  ],
+  [
+    "没有可用镜像，请检查 DNS、网络和目标版本",
+    "No mirror available; check DNS, network and target version",
+    "利用可能なミラーがありません。DNS、ネットワーク、対象バージョンを確認してください"
+  ],
+  [
+    "\nRockdev 0.1\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  0. 退出",
+    "\nRockdev 0.1\n  1. System check\n  2. Check or switch mirrors\n  3. Create local RPM repository\n  4. Install development environments\n  5. List development environments\n  6. Restore mirror configuration\n  0. Exit",
+    "\nRockdev 0.1\n  1. システム確認\n  2. ミラー確認・変更\n  3. ローカル RPM リポジトリ作成\n  4. 開発環境のインストール\n  5. 開発環境の一覧\n  6. ミラー設定の復元\n  0. 終了"
+  ],
+  [
+    "请选择: ",
+    "Select: ",
+    "選択してください: "
+  ],
+  [
+    "镜像名 / auto 自动选择 / check 仅检测: ",
+    "Mirror name / auto / check: ",
+    "ミラー名 / auto 自動選択 / check 確認のみ: "
+  ],
+  [
+    "新仓库绝对路径（父目录须已存在）: ",
+    "New repository absolute path (parent must exist): ",
+    "新しいリポジトリの絶対パス（親ディレクトリが必要）: "
+  ],
+  [
+    "RPM 包名，用空格分隔: ",
+    "RPM package names, separated by spaces: ",
+    "RPM パッケージ名（空白区切り）: "
+  ],
+  [
+    "环境 python java go node build（空格分隔）: ",
+    "Environments: python java go node build (space-separated): ",
+    "環境 python java go node build（空白区切り）: "
+  ],
+  [
+    "备份 ID: ",
+    "Backup ID: ",
+    "バックアップ ID: "
+  ],
+  [
+    "无效选择。",
+    "Invalid selection.",
+    "無効な選択です。"
+  ],
+  [
+    "错误:",
+    "Error:",
+    "エラー:"
+  ],
+  [
+    "os-release 缺少 ID 或 VERSION_ID",
+    "os-release is missing ID or VERSION_ID",
+    "os-release に ID または VERSION_ID がありません"
+  ],
+  [
+    "仅支持 Rocky Linux，当前 %s/%s",
+    "Only Rocky Linux is supported; detected %s/%s",
+    "Rocky Linux のみ対応しています。検出結果: %s/%s"
+  ],
+  [
+    "未适配 Rocky %s",
+    "Unsupported Rocky version %s",
+    "未対応の Rocky バージョン %s"
+  ],
+  [
+    "未适配架构 %s",
+    "Unsupported architecture %s",
+    "未対応のアーキテクチャ %s"
+  ],
+  [
+    "请选择环境：python java go node build",
+    "Select environments: python java go node build",
+    "環境を選択してください：python java go node build"
+  ],
+  [
+    "未知开发环境 %q",
+    "Unknown environment %q",
+    "不明な開発環境 %q"
+  ],
+  [
+    "安装环境: ",
+    "Install environments: ",
+    "開発環境をインストール: "
+  ],
+  [
+    "（使用已启用 DNF 仓库版本）",
+    " (versions from enabled DNF repositories)",
+    "（有効な DNF リポジトリのバージョンを使用）"
+  ],
+  [
+    "步骤 [%s] 失败: %w",
+    "Step [%s] failed: %w",
+    "手順 [%s] が失敗しました: %w"
+  ],
+  [
+    "拒绝覆盖非普通文件 %s",
+    "Refusing to overwrite non-regular file %s",
+    "通常ファイル以外は上書きできません: %s"
+  ],
+  [
+    "仓库目录必须是绝对路径，不能包含换行或变量",
+    "Repository path must be absolute, without newlines or variables",
+    "リポジトリには改行や変数を含まない絶対パスを指定してください"
+  ],
+  [
+    "目标已存在，使用新目录以保护已有仓库: %s",
+    "Target exists; choose a new directory: %s",
+    "対象が存在します。新しいディレクトリを指定してください: %s"
+  ],
+  [
+    "至少指定一个 RPM 包名",
+    "Specify at least one RPM package",
+    "RPM パッケージ名を一つ以上指定してください"
+  ],
+  [
+    "无效 RPM 包名 %q（不接受 URL、选项和通配符）",
+    "Invalid RPM package %q (URLs, options and wildcards are not accepted)",
+    "無効な RPM パッケージ名 %q（URL、オプション、ワイルドカードは使用できません）"
+  ],
+  [
+    "父目录不存在: %s",
+    "Parent directory does not exist: %s",
+    "親ディレクトリがありません: %s"
+  ],
+  [
+    "创建按需 RPM 仓库: ",
+    "Create local RPM repository: ",
+    "ローカル RPM リポジトリを作成: "
+  ],
+  [
+    "下载 ",
+    "Download ",
+    "ダウンロード "
+  ],
+  [
+    " 及所有依赖（--resolve --alldeps）；校验签名；生成元数据；原子发布到 ",
+    " and all dependencies (--resolve --alldeps); verify signatures, generate metadata and publish to ",
+    " と全依存関係（--resolve --alldeps）。署名を検証し、メタデータを生成して公開: "
+  ],
+  [
+    "没有下载到 RPM 包",
+    "No RPM packages downloaded",
+    "RPM パッケージがダウンロードされていません"
+  ],
+  [
+    "仓库元数据未生成: %w",
+    "Repository metadata missing: %w",
+    "リポジトリのメタデータが生成されていません: %w"
+  ],
+  [
+    "目标目录在执行期间出现，停止发布: %s",
+    "Target appeared during execution; publication stopped: %s",
+    "実行中に対象ディレクトリが作成されたため、公開を中止しました: %s"
+  ],
+  [
+    "运行器不支持签名验证",
+    "Runner does not support signature verification",
+    "実行環境が署名検証に対応していません"
+  ],
+  [
+    "RPM 签名不可信: %s",
+    "Untrusted RPM signature: %s",
+    "信頼できない RPM 署名: %s"
+  ],
+  [
+    "RPM 缺少有效签名: %s",
+    "RPM has no valid signature: %s",
+    "有効な署名がない RPM: %s"
+  ],
+  [
+    "系统修改仅支持 Linux",
+    "System changes require Linux",
+    "システムの変更には Linux が必要です"
+  ],
+  [
+    "Rocky 官方",
+    "Rocky official",
+    "Rocky 公式"
+  ],
+  [
+    "阿里云",
+    "Aliyun",
+    "阿里雲"
+  ],
+  [
+    "清华 TUNA",
+    "Tsinghua TUNA",
+    "清華大学 TUNA"
+  ],
+  [
+    "中国科大",
+    "USTC",
+    "中国科学技術大学"
+  ],
+  [
+    "未知镜像 %q，请运行 mirror list",
+    "Unknown mirror %q; run mirror list",
+    "不明なミラー %q。mirror list を実行してください"
+  ],
+  [
+    "%s: 无效的仓库元数据",
+    "%s: invalid repository metadata",
+    "%s: リポジトリのメタデータが無効です"
+  ],
+  [
+    "拒绝非普通 repo 文件 %s",
+    "Refusing non-regular repo file %s",
+    "通常ファイル以外の repo は使用できません: %s"
+  ],
+  [
+    "没有找到 BaseOS/AppStream/extras 仓库配置",
+    "No BaseOS/AppStream/extras configuration found",
+    "BaseOS/AppStream/extras の設定が見つかりません"
+  ],
+  [
+    "%w; 配置恢复失败: %s; 备份 %s",
+    "%w; configuration restore failed: %s; backup %s",
+    "%w; 設定の復元に失敗: %s; バックアップ %s"
+  ],
+  [
+    "%w; 原配置已恢复，备份 %s（DNF 缓存需重新刷新）",
+    "%w; original configuration restored; backup %s (refresh DNF cache)",
+    "%w; 元の設定を復元しました。バックアップ %s（DNF キャッシュの更新が必要です）"
+  ],
+  [
+    "无效备份 ID",
+    "Invalid backup ID",
+    "無効なバックアップ ID"
+  ],
+  [
+    "空备份",
+    "Empty backup",
+    "バックアップが空です"
+  ],
+  [
+    "备份文件名无效",
+    "Invalid backup filename",
+    "無効なバックアップファイル名"
+  ],
+  [
+    "备份校验失败 %s",
+    "Backup checksum mismatch: %s",
+    "バックアップのチェックサムが一致しません: %s"
+  ],
+  [
+    "拒绝非普通文件 %s",
+    "Refusing non-regular file %s",
+    "通常ファイル以外は使用できません: %s"
+  ],
+  [
+    "%s 已被手动修改，停止恢复",
+    "%s was manually edited; restore stopped",
+    "%s は手動で変更されています。復元を中止しました"
+  ],
+  [
+    "部分恢复，请保留备份 %s: %w",
+    "Partial restore; keep backup %s: %w",
+    "一部のみ復元されました。バックアップ %s を保管してください: %w"
+  ],
+  [
+    "另一个 rockdev 操作正在执行: %w",
+    "Another rockdev operation is running: %w",
+    "別の rockdev 操作が実行中です: %w"
+  ],
+  [
+    "--venv 仅支持 Python 环境",
+    "--venv accepts only the Python preset",
+    "--venv は Python 環境のみ対応しています"
+  ],
+  [
+    "应用部署清单",
+    "Apply deployment profile",
+    "デプロイ設定を適用"
+  ],
+  [
+    "当前平台不支持安全发布离线仓库",
+    "Atomic bundle publication is unsupported on this platform",
+    "このプラットフォームでは安全な公開に対応していません"
+  ],
+  [
+    "离线包目标已存在或不可访问：%s",
+    "Bundle destination already exists or is inaccessible: %s",
+    "保存先が存在するかアクセスできません: %s"
+  ],
+  [
+    "离线包导出需要 --from",
+    "Bundle export requires --from",
+    "エクスポートには --from が必要です"
+  ],
+  [
+    "离线包导入需要 --dir",
+    "Bundle import requires --dir",
+    "インポートには --dir が必要です"
+  ],
+  [
+    "离线包的系统版本或架构与本机不匹配",
+    "Bundle platform does not match target system",
+    "オフラインパッケージの OS またはアーキテクチャが一致しません"
+  ],
+  [
+    "无法使用 DNF 更新自定义运行环境 %s；请使用原管理器或 Python --venv",
+    "Cannot update custom runtime %s using DNF; use its original manager or a Python --venv",
+    "カスタム環境 %s は DNF で更新できません。元の管理ツールまたは Python --venv を使用してください"
+  ],
+  [
+    "缺少命令 %s",
+    "Command %s is missing",
+    "コマンド %s がありません"
+  ],
+  [
+    "命令检查失败 %s：%v",
+    "Command check failed for %s: %v",
+    "コマンド %s の確認に失敗: %v"
+  ],
+  [
+    "配置 %s 包源：%s",
+    "Configure %s source: %s",
+    "%s の取得元を設定: %s"
+  ],
+  [
+    "创建 Python 虚拟环境：%s",
+    "Create Python virtual environment: %s",
+    "Python 仮想環境を作成: %s"
+  ],
+  [
+    "当前用户的包源配置：%s\n",
+    "Current-user source configuration: %s\n",
+    "現在のユーザーの設定: %s\n"
+  ],
+  [
+    "预览：环境检查会执行只读的版本查询",
+    "Dry run: environment inspection will execute read-only version checks",
+    "プレビュー：環境確認ではバージョンを読み取ります"
+  ],
+  [
+    "预览：不发送网络请求",
+    "Dry run: no network request",
+    "プレビュー：ネットワーク通信は行いません"
+  ],
+  [
+    "Maven 受管理镜像配置重复",
+    "Duplicate managed Maven mirror",
+    "Maven の管理対象ミラーが重複しています"
+  ],
+  [
+    "环境 %s：已安装=%t 隔离环境=%t\n",
+    "Environment %s: installed=%t isolated=%t\n",
+    "環境 %s: インストール済み=%t 分離環境=%t\n"
+  ],
+  [
+    "以下环境变量会覆盖配置：%s\n",
+    "Environment overrides: %s\n",
+    "設定を上書きする環境変数: %s\n"
+  ],
+  [
+    "现有 Maven 中央镜像需人工确认，未修改",
+    "Existing Maven central mirror requires manual review",
+    "既存の Maven 中央ミラーを確認してください。変更していません"
+  ],
+  [
+    "执行前会检查已有环境；--yes 不代表允许更新",
+    "Existing environments are checked before execution; --yes does not authorize updates",
+    "実行前に既存環境を確認します。--yes だけでは更新を許可しません"
+  ],
+  [
+    "已有环境默认保留；--update 允许更新，--venv 创建独立 Python 环境。",
+    "Existing environments are kept unless --update is selected. --venv creates a new isolated Python environment.",
+    "既存環境は維持します。--update は更新を許可し、--venv は Python 仮想環境を新規作成します。"
+  ],
+  [
+    "导出部署清单",
+    "Export deployment profile",
+    "デプロイ設定をエクスポート"
+  ],
+  [
+    "GOENV 已禁用",
+    "GOENV is disabled",
+    "GOENV が無効です"
+  ],
+  [
+    "Maven 镜像配置无效",
+    "Invalid Maven mirror",
+    "Maven ミラー設定が無効です"
+  ],
+  [
+    "Maven XML 配置无效",
+    "Invalid Maven settings XML",
+    "Maven の XML 設定が無効です"
+  ],
+  [
+    "Maven 配置根节点无效",
+    "Invalid Maven settings root",
+    "Maven 設定のルート要素が無効です"
+  ],
+  [
+    "离线包命令无效",
+    "Invalid bundle command",
+    "オフラインパッケージのコマンドが無効です"
+  ],
+  [
+    "离线包无效或包含不安全内容",
+    "Invalid or unsafe offline bundle",
+    "オフラインパッケージが無効または安全ではありません"
+  ],
+  [
+    "配置清单命令无效",
+    "Invalid profile command",
+    "デプロイ設定のコマンドが無効です"
+  ],
+  [
+    "包源备份无效",
+    "Invalid source backup",
+    "取得元のバックアップが無効です"
+  ],
+  [
+    "包源备份 ID 无效",
+    "Invalid source backup ID",
+    "取得元バックアップ ID が無効です"
+  ],
+  [
+    "包源备份校验失败",
+    "Invalid source backup integrity",
+    "取得元バックアップの整合性を確認できません"
+  ],
+  [
+    "包源命令无效",
+    "Invalid source command",
+    "取得元のコマンドが無効です"
+  ],
+  [
+    "JAVA_HOME 与 PATH 中的 java 不一致",
+    "JAVA_HOME does not match PATH java",
+    "JAVA_HOME と PATH の java が一致しません"
+  ],
+  [
+    "保留已有环境 %s\n",
+    "Keeping existing environment %s\n",
+    "既存の環境 %s を維持します\n"
+  ],
+  [
+    "保留隔离环境 %s，不更新系统软件包\n",
+    "Keeping isolated environment %s; system packages are unchanged\n",
+    "分離環境 %s を維持し、システムパッケージは変更しません\n"
+  ],
+  [
+    "本地仓库已准备：%s。离线安装时显式启用 rockdev-local.repo。\n",
+    "Local repository prepared: %s. Enable rockdev-local.repo explicitly for offline installation.\n",
+    "ローカルリポジトリを準備しました: %s。オフラインインストールでは rockdev-local.repo を有効にしてください。\n"
+  ],
+  [
+    "选项 %s 缺少值",
+    "Missing value for %s",
+    "%s に値を指定してください"
+  ],
+  [
+    "PATH 中存在多个 %s 候选命令",
+    "Multiple PATH candidates for %s",
+    "PATH に複数の %s が存在します"
+  ],
+  [
+    "无需修改",
+    "No changes required",
+    "変更は不要です"
+  ],
+  [
+    "选项不适用于当前命令",
+    "Options do not apply to this command",
+    "このコマンドでは使用できないオプションです"
+  ],
+  [
+    "导出清单需要 --file",
+    "Profile export requires --file",
+    "設定のエクスポートには --file が必要です"
+  ],
+  [
+    "配置清单有效",
+    "Profile is valid",
+    "デプロイ設定は有効です"
+  ],
+  [
+    "需要 Python 命令",
+    "Python command is required",
+    "Python コマンドが必要です"
+  ],
+  [
+    "Python 隔离环境检查失败：%v",
+    "Python isolation check failed: %v",
+    "Python 仮想環境の確認に失敗: %v"
+  ],
+  [
+    "创建虚拟环境前需安装 Python",
+    "Python must be installed before creating a virtual environment",
+    "仮想環境を作成する前に Python が必要です"
+  ],
+  [
+    "拒绝包源配置路径中的符号链接",
+    "Refusing symbolic link in source path",
+    "設定パスにシンボリックリンクは使用できません"
+  ],
+  [
+    "恢复 %s",
+    "Restore %s",
+    "%s を復元"
+  ],
+  [
+    "恢复包源备份 %s",
+    "Restore source backup %s",
+    "取得元のバックアップ %s を復元"
+  ],
+  [
+    "至少选择一个开发环境",
+    "Select at least one environment",
+    "開発環境を一つ以上選択してください"
+  ],
+  [
+    "预览后包源备份发生变化",
+    "Source backup changed after preview",
+    "プレビュー後にバックアップが変更されています"
+  ],
+  [
+    "预览后包源配置发生变化",
+    "Source configuration changed after preview",
+    "プレビュー後に設定が変更されています"
+  ],
+  [
+    "包源配置必须使用绝对路径",
+    "Source configuration path must be absolute",
+    "設定には絶対パスを指定してください"
+  ],
+  [
+    "包源配置已被手动修改，停止恢复",
+    "Source configuration was edited; refusing restore",
+    "設定が編集されているため復元を中止しました"
+  ],
+  [
+    "包源连通性检查失败：%s",
+    "Source connectivity check failed for %s",
+    "取得元 %s の接続確認に失敗しました"
+  ],
+  [
+    "包源地址可访问",
+    "Source endpoint is available",
+    "取得元に接続できました"
+  ],
+  [
+    "包源元数据返回 HTTP %d",
+    "Source metadata returned HTTP %d",
+    "取得元の応答: HTTP %d"
+  ],
+  [
+    "包源配置的父路径不是目录",
+    "Source parent is not a directory",
+    "設定の親パスがディレクトリではありません"
+  ],
+  [
+    "包源状态目录必须使用绝对路径",
+    "Source state path must be absolute",
+    "状態の保存先には絶対パスを指定してください"
+  ],
+  [
+    "包源配置目标不是普通文件",
+    "Source target is not a regular file",
+    "設定先が通常のファイルではありません"
+  ],
+  [
+    "未知的开发环境 %q",
+    "Unknown development environment %q",
+    "不明な開発環境 %q"
+  ],
+  [
+    "未知包源 %q（工具 %s）",
+    "Unknown source provider %q for %s",
+    "不明な取得元 %q（ツール %s）"
+  ],
+  [
+    "未知的 %s 包源",
+    "Unknown source provider for %s",
+    "%s の取得元が不明です"
+  ],
+  [
+    "未知包源工具：%s",
+    "Unknown source tool: %s",
+    "不明な取得元ツール: %s"
+  ],
+  [
+    "非系统管理的运行环境路径：%s",
+    "Unmanaged runtime path: %s",
+    "システム管理外の実行環境: %s"
+  ],
+  [
+    "包源重定向不安全",
+    "Unsafe source redirect",
+    "取得元の転送先が安全ではありません"
+  ],
+  [
+    "是否更新已有环境 %s？[y/N] ",
+    "Update existing environment %s? [y/N] ",
+    "既存の環境 %s を更新しますか？[y/N] "
+  ],
+  [
+    "离线包 export/import 需要 --file 和目录参数",
+    "Use bundle export/import with --file and a directory",
+    "export/import には --file とディレクトリを指定してください"
+  ],
+  [
+    "使用 profile validate/apply <文件>；更新策略需写入清单",
+    "Use profile validate/apply <file>; update policy belongs in the profile",
+    "profile validate/apply <ファイル> を使用し、更新方針は設定内に記述してください"
+  ],
+  [
+    "虚拟环境的父目录发生变化",
+    "Virtual environment parent changed",
+    "仮想環境の親ディレクトリが変更されています"
+  ],
+  [
+    "虚拟环境的父目录必须已存在",
+    "Virtual environment parent must be an existing directory",
+    "仮想環境の親ディレクトリを事前に作成してください"
+  ],
+  [
+    "虚拟环境目标已存在：%s",
+    "Virtual environment target already exists: %s",
+    "仮想環境の保存先が既に存在します: %s"
+  ],
+  [
+    "虚拟环境需要绝对路径且目录必须不存在",
+    "Virtual environment target must be an absolute new directory",
+    "仮想環境には新規ディレクトリの絶対パスを指定してください"
+  ],
+  [
+    "写入 %s（备份：%s）",
+    "Write %s (backup: %s)",
+    "%s に保存（バックアップ: %s）"
+  ],
+  [
+    "导出离线 RPM 包",
+    "Export offline RPM bundle",
+    "オフライン RPM パッケージをエクスポート"
+  ],
+  [
+    "检查仓库并安全导出离线包",
+    "Validate repository and atomically publish bundle",
+    "リポジトリを検証してオフラインパッケージを公開"
+  ],
+  [
+    "导入离线 RPM 包",
+    "Import offline RPM bundle",
+    "オフライン RPM パッケージをインポート"
+  ],
+  [
+    "发布仓库前校验离线包和 RPM 签名",
+    "Verify bundle and RPM signatures before publishing repository",
+    "リポジトリ公開前にパッケージと RPM 署名を検証"
+  ],
+  [
+    "包源工具（pip/npm/maven/go）：",
+    "Source tool (pip/npm/maven/go): ",
+    "取得元ツール（pip/npm/maven/go）: "
+  ],
+  [
+    "包源名称：",
+    "Source provider: ",
+    "取得元の名前: "
+  ],
+  [
+    "清单操作（validate/apply/export）：",
+    "Profile action (validate/apply/export): ",
+    "設定の操作（validate/apply/export）: "
+  ],
+  [
+    "清单文件：",
+    "Profile file: ",
+    "設定ファイル: "
+  ],
+  [
+    "离线包操作（export/import）：",
+    "Bundle action (export/import): ",
+    "パッケージ操作（export/import）: "
+  ],
+  [
+    "离线包文件：",
+    "Bundle archive: ",
+    "アーカイブファイル: "
+  ],
+  [
+    "仓库目录：",
+    "Repository directory: ",
+    "リポジトリディレクトリ: "
+  ],
+  [
+    "配置清单超过 1 MiB",
+    "Profile exceeds 1 MiB",
+    "設定ファイルが 1 MiB を超えています"
+  ],
+  [
+    "配置清单只能包含一个 JSON 对象",
+    "Profile must contain one JSON object",
+    "設定には JSON オブジェクトを一つだけ記述してください"
+  ],
+  [
+    "不支持的配置清单版本 %d",
+    "Unsupported profile schema %d",
+    "未対応の設定スキーマ %d"
+  ],
+  [
+    "配置清单未包含部署任务",
+    "Profile has no deployment tasks",
+    "設定にデプロイする項目がありません"
+  ],
+  [
+    "未知或重复的环境 %q",
+    "Unknown or duplicate environment %q",
+    "不明または重複する環境 %q"
+  ],
+  [
+    "清单 venv 需要 Python 环境及绝对路径",
+    "Profile venv requires Python and an absolute path",
+    "venv には Python 環境と絶対パスが必要です"
+  ],
+  [
+    "重复的包源工具 %q",
+    "Duplicate source tool %q",
+    "取得元ツール %q が重複しています"
+  ],
+  [
+    "重复的 JSON 键 %q",
+    "Duplicate JSON key %q",
+    "JSON キー %q が重複しています"
+  ],
+  [
+    "JSON 分隔符无效",
+    "Invalid JSON delimiter",
+    "JSON の区切り文字が無効です"
+  ],
+  [
+    "\nRockdev 1.0\n  1. 系统检查\n  2. 镜像检测与切换\n  3. 创建按需 RPM 仓库\n  4. 安装开发环境\n  5. 查看开发环境\n  6. 恢复镜像配置备份\n  7. 环境健康检查\n  8. 开发包源配置\n  9. 配置清单部署\n  10. 离线包导出或导入\n  0. 退出",
+    "\nRockdev 1.0\n  1. System check\n  2. Check or switch mirrors\n  3. Create local RPM repository\n  4. Install development environments\n  5. List development environments\n  6. Restore mirror configuration\n  7. Environment health checks\n  8. Developer package sources\n  9. Deployment profiles\n  10. Offline bundle export/import\n  0. Exit",
+    "\nRockdev 1.0\n  1. システム確認\n  2. ミラー確認・変更\n  3. ローカル RPM リポジトリ作成\n  4. 開発環境のインストール\n  5. 開発環境の一覧\n  6. ミラー設定の復元\n  7. 開発環境の診断\n  8. 開発パッケージの取得元\n  9. 設定によるデプロイ\n  10. オフラインパッケージ入出力\n  0. 終了"
+  ],
+  [
+    "清单键名必须使用小写：%s",
+    "Profile keys must use lowercase: %s",
+    "設定キーは小文字で記述してください: %s"
+  ],
+  [
+    "请将 PACKAGE 替换为要安装的包名：",
+    "Replace PACKAGE with the package names to install:",
+    "PACKAGE をインストールするパッケージ名に置き換えてください:"
+  ],
+  [
+    "清单嵌套过深",
+    "Profile nesting is too deep",
+    "設定の入れ子が深すぎます"
+  ]
 ]

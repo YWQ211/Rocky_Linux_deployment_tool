@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "sources": [
+    {"tool": "pip", "provider": "tuna"},
+    {"tool": "npm", "provider": "npmmirror"},
+    {"tool": "maven", "provider": "aliyun"},
+    {"tool": "go", "provider": "goproxy.cn"}
+  ]
+}

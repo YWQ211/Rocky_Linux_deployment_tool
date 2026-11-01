@@ -1,0 +1,5 @@
+{
+  "schema": 1,
+  "environments": ["python"],
+  "venv": "/tmp/rockdev-project-venv"
+}
