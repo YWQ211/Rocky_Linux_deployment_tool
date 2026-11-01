@@ -14,6 +14,8 @@ rockdev env install python --venv /home/your-user/project/.venv
 
 Checks show command paths, versions, duplicate PATH candidates, JAVA_HOME mismatches and Python isolation. They execute version queries and do not replace project tests.
 
+Go checks use `GOTOOLCHAIN=local` in the subprocess to avoid automatic toolchain downloads, without changing the caller's environment.
+
 Existing environments are kept by default. Interactive installation asks whether to update each one. `--yes` skips confirmation but does not authorize upgrades; `--update` permits updates of system runtimes. Custom runtimes must be updated through their original manager. Installing a system package is not reported as updating a custom runtime.
 
 A detected Python venv/Conda environment is kept without changing global packages. `--venv` creates a new Python environment without DNF. Python and the parent directory must already exist; the target must be new. Existing venvs are not overwritten or upgraded.

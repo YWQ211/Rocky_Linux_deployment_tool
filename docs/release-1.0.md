@@ -14,6 +14,8 @@ rockdev env install python --venv /home/your-user/project/.venv
 
 环境检查显示命令路径、版本、重复 PATH 候选、JAVA_HOME 不一致和 Python 隔离状态。它会执行版本查询，不能代替应用项目测试。
 
+Go 检查子进程使用 `GOTOOLCHAIN=local`，避免自动下载工具链；不改变调用者的环境变量。
+
 已有环境默认保留。交互模式逐项询问是否更新；`--yes` 只跳过执行确认，不授权升级。`--update` 才允许更新已有的系统运行环境。自定义路径下的运行环境需通过原管理器更新，程序不会把新装系统包误报成自定义环境已升级。
 
 检测到真实 Python venv/Conda 时保留隔离环境，不更新全局包。`--venv` 只创建新的 Python venv，不调用 DNF；系统须先有 Python，目标父目录须存在，目标目录须不存在。不提供已有 venv 的覆盖或自动升级。

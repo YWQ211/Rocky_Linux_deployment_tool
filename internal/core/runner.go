@@ -38,6 +38,9 @@ func (r ExecRunner) Run(ctx context.Context, c Command) error {
 func executeCommand(ctx context.Context, c Command, out io.Writer) error {
 	cmd := exec.CommandContext(ctx, c.Name, c.Args...)
 	cmd.Env = append(os.Environ(), "LC_ALL=C", "LANG=C")
+	if name := strings.ToLower(filepath.Base(c.Name)); name == "go" || name == "go.exe" {
+		cmd.Env = append(cmd.Env, "GOTOOLCHAIN=local")
+	}
 	cmd.Stdout = out
 	cmd.Stderr = out
 	// DNF receives -y; subprocesses must never consume menu/confirmation input.
