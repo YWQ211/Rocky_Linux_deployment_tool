@@ -1,5 +1,7 @@
 # VM 手动运行说明
 
+中文 · [English](vm-quickstart.en.md) · [日本語](vm-quickstart.ja.md)
+
 目标：先获取代码或预编译程序，再由你登录 VM 自行运行功能。克隆和拷贝程序不会自动安装软件，也不会修改软件源。
 
 ## 获取代码
@@ -52,7 +54,7 @@ rockdev mirror list
 rockdev mirror check
 
 # 执行换源（需要 sudo，执行前展示计划）
-sudo rockdev mirror use tuna
+sudo rockdev mirror use auto
 
 # 安装开发环境（需要 sudo）
 sudo rockdev env install python java go node build

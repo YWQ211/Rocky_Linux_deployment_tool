@@ -29,7 +29,7 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Language build failed' }
         }
     }
-    $packageFiles = @(Get-Item -LiteralPath '.gitignore','go.mod','README.md','README.en.md','README.ja.md','docs/test-results.md','docs/test-results.tsv','docs/verification.md','docs/vm-acceptance.md','docs/vm-quickstart.md','scripts/build.ps1','scripts/integration.sh','scripts/integration-edge.sh','scripts/integration-final.sh') + @(Get-ChildItem -Path cmd,internal -File -Recurse)
+    $packageFiles = @(Get-Item -LiteralPath '.gitignore','go.mod','README.md','README.en.md','README.ja.md','docs/test-results.md','docs/test-results.en.md','docs/test-results.ja.md','docs/test-results.tsv','docs/verification.md','docs/vm-acceptance.md','docs/vm-quickstart.md','docs/vm-quickstart.en.md','docs/vm-quickstart.ja.md','scripts/build.ps1','scripts/integration.sh','scripts/integration-edge.sh','scripts/integration-final.sh') + @(Get-ChildItem -Path cmd,internal -File -Recurse)
     $zipStream = [IO.File]::Open((Join-Path $projectRoot 'dist\rockdev-0.1.0-source.zip'), [IO.FileMode]::Create)
     try {
         $sourceZip = [IO.Compression.ZipArchive]::new($zipStream, [IO.Compression.ZipArchiveMode]::Create)

@@ -2,6 +2,8 @@
 
 [中文](README.md) · [English](README.en.md) · 日本語
 
+ドキュメント：[VM 操作手順](docs/vm-quickstart.ja.md) · [テスト結果](docs/test-results.ja.md)
+
 Rocky Linux 向けの Go 製 CLI ツールです。システム確認、パッケージミラーの変更、ローカル RPM リポジトリの作成、開発環境のインストールを行います。
 
 ## 実行
@@ -74,7 +76,7 @@ sudo dnf --disablerepo='*' --enablerepo=rockdev-local install python3 python3-pi
 - 復元時はハッシュを確認し、手動編集された設定の上書きを防ぎます。
 - ローカルリポジトリは `module_hotfixes=1` を使う選択済み RPM の集合です。完全なディストリビューションミラーではありません。クライアントには対応する信頼済み RPM 鍵が必要です。
 - 途中で失敗しても、インストール済みパッケージの自動削除は行いません。HTTP 配信や npm/pip/Maven/Go モジュールのミラーは含みません。
-- コードの対応範囲は Rocky 8/9/10、x86_64/aarch64 です。実際の検証範囲は[テスト結果](docs/test-results.md)を参照してください。
+- コードの対応範囲は Rocky 8/9/10、x86_64/aarch64 です。実際の検証範囲は[テスト結果](docs/test-results.ja.md)を参照してください。
 
 ## ビルド
 
@@ -90,4 +92,4 @@ CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o dist/rockdev ./cmd/rockdev
 ./dist/rockdev --lang ja
 ```
 
-Go 1.22 以降が必要です。Windows では `scripts/build.ps1` を利用できます。[VM での操作手順](docs/vm-quickstart.md)も参照してください。
+Go 1.22 以降が必要です。Windows では `scripts/build.ps1` を利用できます。[VM での操作手順](docs/vm-quickstart.ja.md)も参照してください。

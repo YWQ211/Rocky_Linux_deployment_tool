@@ -1,5 +1,7 @@
 # 0.1.0 测试记录
 
+中文 · [English](test-results.en.md) · [日本語](test-results.ja.md)
+
 日期：2026-10-30。
 
 ## 范围

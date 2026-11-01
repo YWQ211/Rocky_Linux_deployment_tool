@@ -2,6 +2,8 @@
 
 中文 · [English](README.en.md) · [日本語](README.ja.md)
 
+文档：[操作指南](docs/vm-quickstart.md) · [测试报告](docs/test-results.md)
+
 运行在 Rocky Linux 上的 Go 命令行工具，用于系统检查、镜像切换、本地 RPM 仓库和开发环境安装。
 
 ## 运行

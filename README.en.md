@@ -2,6 +2,8 @@
 
 [中文](README.md) · English · [日本語](README.ja.md)
 
+Documentation: [VM guide](docs/vm-quickstart.en.md) · [Test report](docs/test-results.en.md)
+
 A Go CLI for Rocky Linux. It checks the system, switches package mirrors, creates a local RPM repository and installs development tools.
 
 ## Run
@@ -74,7 +76,7 @@ Versions come from enabled DNF repositories. The tool does not select language v
 - Restore checks file hashes and stops if the configuration was edited manually.
 - The local repository is a selected RPM set with `module_hotfixes=1`, not a full distribution mirror. Clients need the corresponding trusted RPM keys.
 - Installed packages are not rolled back on failure. No HTTP repository service or npm/pip/Maven/Go module mirror is included.
-- Supported code paths: Rocky 8/9/10 on x86_64/aarch64. See [test results](docs/test-results.md) for what was actually tested.
+- Supported code paths: Rocky 8/9/10 on x86_64/aarch64. See [test results](docs/test-results.en.md) for what was actually tested.
 
 ## Build
 
@@ -90,4 +92,4 @@ CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o dist/rockdev ./cmd/rockdev
 ./dist/rockdev --lang en
 ```
 
-Go 1.22 or later is required. Windows builds can use `scripts/build.ps1`. [Manual VM steps](docs/vm-quickstart.md).
+Go 1.22 or later is required. Windows builds can use `scripts/build.ps1`. [Manual VM steps](docs/vm-quickstart.en.md).
