@@ -167,16 +167,26 @@ func managedRuntime(path string) bool {
 
 // System entrypoints may resolve through alternatives, but not into custom homes.
 func IsSystemRuntime(path string) bool {
-	p := filepath.ToSlash(filepath.Clean(path))
-	if !strings.HasPrefix(p, "/usr/bin/") && !strings.HasPrefix(p, "/bin/") {
-		return false
-	}
 	resolved, e := filepath.EvalSymlinks(path)
 	if e != nil {
 		return false
 	}
-	p = filepath.ToSlash(resolved)
-	return strings.HasPrefix(p, "/usr/bin/") || strings.HasPrefix(p, "/bin/") || strings.HasPrefix(p, "/usr/lib/") || strings.HasPrefix(p, "/usr/lib64/")
+	return systemRuntimeTarget(path, resolved)
+}
+
+func systemRuntimeTarget(path, resolved string) bool {
+	p := filepath.ToSlash(filepath.Clean(path))
+	if !strings.HasPrefix(p, "/usr/bin/") && !strings.HasPrefix(p, "/bin/") {
+		return false
+	}
+	target := filepath.ToSlash(filepath.Clean(resolved))
+	// Rocky 8's packaged Python resolves through alternatives into libexec.
+	// Only these Python entrypoints may use this exact target; other libexec
+	// programs and custom Python locations still require their original manager.
+	if target == "/usr/libexec/platform-python3.6" {
+		return p == "/usr/bin/python3" || p == "/bin/python3" || p == "/usr/bin/python3.6" || p == "/bin/python3.6"
+	}
+	return strings.HasPrefix(target, "/usr/bin/") || strings.HasPrefix(target, "/bin/") || strings.HasPrefix(target, "/usr/lib/") || strings.HasPrefix(target, "/usr/lib64/")
 }
 
 // VenvPlan creates only a new directory; it never invokes a package manager.

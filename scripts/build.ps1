@@ -14,7 +14,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
     & $GoPath vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'go vet failed' }
-    $releaseDir = Join-Path $projectRoot 'dist\1.0.0'
+    $releaseDir = Join-Path $projectRoot 'dist\1.0.1'
     New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
     foreach ($target in @(@('windows','amd64','rockdev-windows-amd64.exe'), @('linux','amd64','rockdev-linux-amd64'), @('linux','arm64','rockdev-linux-arm64'))) {
         $env:GOOS = $target[0]
@@ -31,7 +31,8 @@ try {
         }
     }
     $packageFiles = @(Get-Item -LiteralPath '.gitignore','go.mod','README.md','README.en.md','README.ja.md','CHANGELOG.md','docs/release-1.0.md','docs/release-1.0.en.md','docs/release-1.0.ja.md','docs/test-results-1.0.md','docs/test-results-1.0.en.md','docs/test-results-1.0.ja.md','docs/test-results-1.0.tsv','docs/test-results.md','docs/test-results.en.md','docs/test-results.ja.md','docs/test-results.tsv','docs/verification.md','docs/vm-acceptance.md','docs/vm-quickstart.md','docs/vm-quickstart.en.md','docs/vm-quickstart.ja.md','scripts/build.ps1','scripts/integration-v1.sh','scripts/integration.sh','scripts/integration-edge.sh','scripts/integration-final.sh') + @(Get-ChildItem -Path cmd,internal,examples -File -Recurse)
-    $zipStream = [IO.File]::Open((Join-Path $releaseDir 'rockdev-1.0.0-source.zip'), [IO.FileMode]::Create)
+    $packageFiles += @(Get-Item -LiteralPath 'docs/release-1.0.1.md','docs/release-1.0.1.en.md','docs/release-1.0.1.ja.md','docs/test-results-1.0.1.md','docs/test-results-1.0.1.en.md','docs/test-results-1.0.1.ja.md','docs/test-results-1.0.1.tsv','scripts/compat-smoke.sh','scripts/compat-runtime.sh','scripts/compat-offline.sh','scripts/compat-guards.sh')
+    $zipStream = [IO.File]::Open((Join-Path $releaseDir 'rockdev-1.0.1-source.zip'), [IO.FileMode]::Create)
     try {
         $sourceZip = [IO.Compression.ZipArchive]::new($zipStream, [IO.Compression.ZipArchiveMode]::Create)
         try {
@@ -41,7 +42,7 @@ try {
             }
         } finally { $sourceZip.Dispose() }
     } finally { $zipStream.Dispose() }
-    $artifactNames = @('rockdev-linux-amd64','rockdev-linux-arm64','rockdev-windows-amd64.exe','rockdev-linux-amd64-en','rockdev-linux-amd64-ja','rockdev-linux-arm64-en','rockdev-linux-arm64-ja','rockdev-1.0.0-source.zip')
+    $artifactNames = @('rockdev-linux-amd64','rockdev-linux-arm64','rockdev-windows-amd64.exe','rockdev-linux-amd64-en','rockdev-linux-amd64-ja','rockdev-linux-arm64-en','rockdev-linux-arm64-ja','rockdev-1.0.1-source.zip')
     $sums = foreach ($name in $artifactNames) { $hash = (Get-FileHash -LiteralPath (Join-Path $releaseDir $name) -Algorithm SHA256).Hash.ToLowerInvariant(); "$hash  $name" }
     [IO.File]::WriteAllLines((Join-Path $releaseDir 'SHA256SUMS'), [string[]]$sums, [Text.UTF8Encoding]::new($false))
     $sums

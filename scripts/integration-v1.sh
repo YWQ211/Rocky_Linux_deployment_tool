@@ -2,7 +2,19 @@
 set -u
 mkdir -p /results /srv/rockdev /tmp/v1
 printf 'case\texpected\tactual\tresult\n' > /results/results.tsv
-run(){ local name=$1 expected=$2 actual result;shift 2;timeout 600 "$@" > "/results/$name.log" 2>&1;actual=$?;result=FAIL;if { [ "$expected" = 0 ] && [ "$actual" = 0 ]; } || { [ "$expected" = nonzero ] && [ "$actual" != 0 ] && [ "$actual" != 124 ]; };then result=PASS;fi;printf '%s\t%s\t%s\t%s\n' "$name" "$expected" "$actual" "$result" | tee -a /results/results.tsv; }
+run(){ local name=$1 expected=$2 actual result;shift 2;timeout 600 "$@" > "/results/$name.log" 2>&1;actual=$?;result=FAIL;if { [ "$expected" = 0 ] && [ "$actual" = 0 ]; } || { [ "$expected" = nonzero ] && [ "$actual" = 1 ]; };then result=PASS;fi;printf '%s\t%s\t%s\t%s\n' "$name" "$expected" "$actual" "$result" | tee -a /results/results.tsv; }
+cat > /tmp/v1/pip-index.py <<'PY'
+import sys
+try:
+    from pip._internal.commands import create_command
+    command = create_command('install')
+except ImportError:
+    from pip.commands.install import InstallCommand
+    command = InstallCommand()
+actual = command.parse_args([])[0].index_url
+print(actual)
+assert actual.rstrip('/') == sys.argv[1].rstrip('/'), (actual, sys.argv[1])
+PY
 cat /etc/os-release > /results/os-release.txt
 run version 0 rockdev version
 for lang in zh en ja;do run "help-$lang" 0 rockdev --lang "$lang" --help;run "menu-$lang" 0 bash -c "printf '0\n' | rockdev --lang $lang";done
@@ -37,7 +49,7 @@ cp /tmp/v1/npm-managed /root/.npmrc
 run source-restore 0 rockdev --lang en source restore "$backup" --yes
 run source-restored-bytes 0 python3 -c 'import pathlib,sys;sys.exit(0 if pathlib.Path(sys.argv[1]).read_bytes()==pathlib.Path(sys.argv[2]).read_bytes() else 1)' /root/.npmrc /tmp/v1/npm-original
 run source-pip 0 rockdev --lang en source use pip tuna --yes
-run source-pip-effective 0 bash -c 'test "$(python3 -m pip config get global.index-url)" = https://pypi.tuna.tsinghua.edu.cn/simple/'
+run source-pip-effective 0 python3 /tmp/v1/pip-index.py https://pypi.tuna.tsinghua.edu.cn/simple/
 run source-maven 0 rockdev --lang en source use maven aliyun --yes
 mkdir -p /tmp/v1/maven
 printf '<project><modelVersion>4.0.0</modelVersion><groupId>test</groupId><artifactId>test</artifactId><version>1</version><packaging>pom</packaging></project>' > /tmp/v1/maven/pom.xml
@@ -58,8 +70,8 @@ printf '{"schema":1,"environments":["python"],"venv":"/tmp/v1/profile-venv","sou
 run profile-venv-preview 0 rockdev --lang ja profile apply /tmp/v1/venv.json --dry-run
 run profile-preview-no-write 0 test ! -e /tmp/v1/profile-venv
 run profile-venv-apply 0 rockdev --lang en profile apply /tmp/v1/venv.json --yes
-run profile-pip-scoped 0 env PIP_CONFIG_FILE=/tmp/v1/profile-venv/pip.conf /tmp/v1/profile-venv/bin/python -m pip config get global.index-url
-run source-global-pip-preserved 0 bash -c 'test "$(python3 -m pip config get global.index-url)" = https://pypi.tuna.tsinghua.edu.cn/simple/'
+run profile-pip-scoped 0 env PIP_CONFIG_FILE=/tmp/v1/profile-venv/pip.conf /tmp/v1/profile-venv/bin/python /tmp/v1/pip-index.py https://pypi.org/simple/
+run source-global-pip-preserved 0 python3 /tmp/v1/pip-index.py https://pypi.tuna.tsinghua.edu.cn/simple/
 run repo-create 0 rockdev --lang en repo create --dir /srv/rockdev/python python3 python3-pip --yes
 run bundle-export 0 rockdev --lang en bundle export --from /srv/rockdev/python --file /results/python.tar.gz --yes
 run bundle-existing nonzero rockdev --lang en bundle export --from /srv/rockdev/python --file /results/python.tar.gz --yes
@@ -74,3 +86,4 @@ cp /results/python.tar.gz /tmp/v1/corrupt.tar.gz;printf broken | dd of=/tmp/v1/c
 run bundle-corrupt nonzero rockdev --lang en bundle import --file /tmp/v1/corrupt.tar.gz --dir /srv/rockdev/corrupt --yes
 run bundle-corrupt-no-write 0 test ! -e /srv/rockdev/corrupt
 printf 'V1_INTEGRATION_DONE\n'
+awk -F '\t' 'NR > 1 && $4 != "PASS" {failed=1} END {exit failed}' /results/results.tsv

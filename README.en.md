@@ -1,8 +1,10 @@
-# Rockdev 1.0.0
+# Rockdev 1.0.1
 
 [中文](README.md) · English · [日本語](README.ja.md)
 
 Documentation: [1.0 guide](docs/release-1.0.en.md) · [VM guide](docs/vm-quickstart.en.md) · [1.0 test report](docs/test-results-1.0.en.md)
+
+1.0.1 fixes system Python detection on Rocky 8. [Patch notes and tests](docs/release-1.0.1.en.md).
 
 A Go CLI for Rocky Linux. It checks the system, switches package mirrors, creates a local RPM repository and installs development tools.
 

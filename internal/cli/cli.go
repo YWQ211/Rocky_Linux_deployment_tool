@@ -17,7 +17,7 @@ import (
 	"rockdev/internal/core"
 )
 
-const Version = "1.0.0"
+const Version = "1.0.1"
 const help = `rockdev 0.1.0 — Rocky Linux 环境初始化工具
 
 用法（无参数打开交互菜单）：

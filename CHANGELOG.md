@@ -1,5 +1,11 @@
 # Changes
 
+## 1.0.1 — 2026-11-02
+
+- Recognize Rocky 8 system Python when standard entrypoints resolve to `/usr/libexec/platform-python3.6`; continue rejecting custom runtimes.
+- Verify effective pip sources with both pip 9 and newer versions. Integration runs now fail on unexpected exit codes or failed cases.
+- Build versioned artifacts under `dist/1.0.1`, preserving earlier releases.
+
 ## 1.0.0 — 2026-11-01
 
 - Inspect development environments before installation. Existing environments stay unchanged unless updating is explicitly selected. `--yes` alone does not authorize upgrades.

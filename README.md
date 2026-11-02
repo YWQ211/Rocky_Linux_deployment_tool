@@ -1,8 +1,10 @@
-# Rockdev 1.0.0
+# Rockdev 1.0.1
 
 中文 · [English](README.en.md) · [日本語](README.ja.md)
 
 文档：[1.0 使用说明](docs/release-1.0.md) · [操作指南](docs/vm-quickstart.md) · [1.0 测试报告](docs/test-results-1.0.md)
+
+1.0.1 修复 Rocky 8 系统 Python 路径误判。[补丁说明与复测](docs/release-1.0.1.md)。
 
 运行在 Rocky Linux 上的 Go 命令行工具，用于系统检查、镜像切换、本地 RPM 仓库和开发环境安装。
 

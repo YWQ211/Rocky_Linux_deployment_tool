@@ -1,8 +1,10 @@
-# Rockdev 1.0.0
+# Rockdev 1.0.1
 
 [中文](README.md) · [English](README.en.md) · 日本語
 
 ドキュメント：[1.0 操作説明](docs/release-1.0.ja.md) · [VM 操作手順](docs/vm-quickstart.ja.md) · [1.0 テスト結果](docs/test-results-1.0.ja.md)
+
+1.0.1 で Rocky 8 のシステム Python 判定を修正しました。[変更点と再検証](docs/release-1.0.1.ja.md)。
 
 Rocky Linux 向けの Go 製 CLI ツールです。システム確認、パッケージミラーの変更、ローカル RPM リポジトリの作成、開発環境のインストールを行います。
 
