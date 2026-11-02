@@ -14,11 +14,34 @@
 
 运行在 Rocky Linux 上的 Go 命令行工具，用于系统检查、镜像切换、本地 RPM 仓库和开发环境安装。
 
-首次使用请先看[源码编译步骤](#编译)。克隆获得的是源码，不会自动安装工具或下载开发环境。
+普通用户可以直接运行仓库内的启动入口，不需要 Go。开发者修改程序时再看[源码编译步骤](#编译)。
+
+## 克隆后直接使用
+
+在 Rocky Linux 8/9/10、x86_64 或 aarch64 上：
+
+```bash
+git clone https://github.com/YWQ211/Rocky_Linux_deployment_tool.git
+cd Rocky_Linux_deployment_tool
+./rockdev
+```
+
+首次运行需联网，并有 `curl` 或 `wget`、`sha256sum`。入口下载本仓库固定版本的 Release 程序，以仓库 `release/SHA256SUMS` 中的摘要校验后缓存，随后进入菜单。不会自动升级到 latest；更新版本通过维护者更新入口和摘要、用户 `git pull` 完成。首次启动本身不执行 DNF 安装。
+
+```bash
+./rockdev doctor
+./rockdev --lang en
+./rockdev --lang ja
+sudo ./rockdev env install python go
+```
+
+后续每次验证缓存摘要，缓存有效时可断网启动；需要联网的软件安装仍须有相应网络或离线仓库。普通用户缓存默认 `~/.cache/rockdev/`，支持绝对路径的 `XDG_CACHE_HOME`；root/sudo 使用 `/var/cache/rockdev/`，不执行普通用户缓存。缓存路径须为当前用户所有的真实目录，不能是符号链接或可被其他用户写入的共享目录。
+
+自动下载要求仓库可公开访问且对应 Release 已发布。私有阶段的 Git 克隆权限不会自动传给下载器；遇到 404 时先确认仓库和 Release 可见性。开发者仍可在本地编译运行。
 
 ## 运行
 
-以下示例适用于已经拿到的编译程序。使用对应 CPU 架构的 Linux 程序；运行不需要 Go，源码编译才需要。目前 GitHub 尚未发布预编译 Release 附件，克隆后请按页末步骤构建。
+以下示例适用于从 [Releases](https://github.com/YWQ211/Rocky_Linux_deployment_tool/releases) 单独取得的编译程序。使用对应 CPU 架构的 Linux 程序；运行不需要 Go，源码编译才需要。
 
 ```bash
 chmod +x rockdev-linux-amd64
@@ -151,7 +174,7 @@ sudo dnf --setopt=reposdir="$HOME/offline-python" --disablerepo='*' --enablerepo
 
 需要 Git 和 Go **1.22 或更高版本**，先用 `git --version`、`go version` 检查。DNF 提供的 Go 可能较旧，不满足要求时按 [Go 官方安装说明](https://go.dev/doc/install)准备编译器。
 
-`git clone` 只复制源码；`dist/` 不纳入 Git，必须先构建可执行文件。当前仓库仍为私有，需要 GitHub 访问权限；将来公开后可以直接用下面的 HTTPS 地址克隆，无需仓库访问授权。不要把令牌写入 URL。克隆本身不会修改系统配置。
+本节适用于修改源码的开发者，普通用户用上方 `./rockdev` 入口即可。`dist/` 不纳入 Git，源码构建需本地 Go。公开仓库的 HTTPS 克隆无需仓库访问授权；私有仓库仍需要权限。不要把令牌写入 URL。克隆本身不会修改系统配置。
 
 ```bash
 git clone https://github.com/YWQ211/Rocky_Linux_deployment_tool.git
@@ -174,4 +197,6 @@ Windows 可用 `scripts/build.ps1` 交叉构建 Linux 程序；Windows 构建本
 
 ## 公开与许可证状态
 
-当前尚无 `LICENSE`，也没有 GitHub Release 二进制附件。将仓库设为 Public 可以让别人获取源码；若作为开源项目发布，还需要维护者选定并加入许可证，说明使用、修改和再分发权限。参见 [GitHub 许可证说明](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)。
+项目采用 [MIT 许可证](LICENSE)，版权署名为 `2026 YWQ211`。允许使用、修改、再分发和商用，须保留版权和许可声明。软件按原样提供，不附带担保。编译程序所包含的 Go 运行时声明见 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)。
+
+仓库可见性由维护者单独控制；许可证文件不会自动把私有仓库改为公开。维护者发布步骤见[发布说明](docs/publishing.md)。

@@ -1,0 +1,4 @@
+rockdev text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+release/* text eol=lf

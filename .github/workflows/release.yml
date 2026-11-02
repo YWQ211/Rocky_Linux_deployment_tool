@@ -1,0 +1,71 @@
+name: Build and publish pinned release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - rockdev
+      - release/**
+      - LICENSE
+      - THIRD_PARTY_NOTICES
+      - scripts/release.sh
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rockdev-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'YWQ211/Rocky_Linux_deployment_tool'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Test, build and verify pinned checksums
+        run: sh scripts/release.sh
+      - name: Verify actual launcher with Rocky and the built Go executable
+        run: sh scripts/smoke-launcher.sh
+      - name: Publish a new immutable-version download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(cat release/VERSION)
+          if gh release view "v$version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v$version already exists. Inspect it before retrying; no assets will be replaced."
+            exit 1
+          fi
+          cat > /tmp/rockdev-release-notes.md <<'NOTES'
+          Clone the repository and run ./rockdev on Rocky Linux. No Go installation is required.
+          The launcher downloads this fixed release and verifies its repository-pinned SHA256.
+          Linux amd64 and arm64 binaries are included. Select --lang zh, en or ja.
+          Rockdev is MIT licensed; Go runtime notices are included in THIRD_PARTY_NOTICES.
+          Deployment tests: Rocky 8.10 and 9.8 x86_64. ARM64 is cross-built only.
+          NOTES
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f "ref=refs/tags/v$version" -f "sha=$GITHUB_SHA"
+          gh release create "v$version" \
+            dist/release/rockdev-linux-amd64 dist/release/rockdev-linux-arm64 \
+            dist/release/SHA256SUMS dist/release/LICENSE dist/release/THIRD_PARTY_NOTICES \
+            --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "Rockdev $version" --notes-file /tmp/rockdev-release-notes.md --draft
+          ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" --jq '[.object.type, .object.sha] | join(" ")')
+          if [ "$ref" != "commit $GITHUB_SHA" ]; then
+            echo 'Tag does not identify this build commit; draft left unpublished for inspection.'
+            exit 1
+          fi
+          gh release edit "v$version" --repo "$GITHUB_REPOSITORY" --draft=false

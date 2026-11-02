@@ -14,11 +14,34 @@
 
 Rocky Linux 向けの Go 製 CLI ツールです。システム確認、パッケージミラーの変更、ローカル RPM リポジトリの作成、開発環境のインストールを行います。
 
-初めて利用する場合は[ビルド手順](#ビルド)から始めてください。クローンで取得するのはソースです。ツールや開発環境が自動でインストールされるわけではありません。
+一般ユーザーは Go を導入せず、クローンした起動スクリプトを実行できます。ソースを変更する開発者は[ビルド手順](#ビルド)を参照してください。
+
+## クローンして実行
+
+Rocky Linux 8/9/10、x86_64 または aarch64 上で実行します。
+
+```bash
+git clone https://github.com/YWQ211/Rocky_Linux_deployment_tool.git
+cd Rocky_Linux_deployment_tool
+./rockdev
+```
+
+初回はネットワーク、`curl` または `wget`、`sha256sum` が必要です。起動スクリプトはこのチェックアウトで固定された Release を取得し、`release/SHA256SUMS` の値で検証して保存し、メニューを開きます。latest への自動追従はしません。管理者が版とハッシュを更新し、ユーザーは `git pull` で取得します。起動だけで DNF のインストールは行いません。
+
+```bash
+./rockdev doctor
+./rockdev --lang en
+./rockdev --lang ja
+sudo ./rockdev env install python go
+```
+
+保存済みプログラムも毎回ハッシュを確認し、有効なら通信なしで起動できます。パッケージ導入には通信またはオフラインリポジトリが必要です。一般ユーザーの保存先は `~/.cache/rockdev/` で、絶対パスの `XDG_CACHE_HOME` に対応します。root/sudo は一般ユーザーのキャッシュを実行せず、`/var/cache/rockdev/` を使います。保存先は本人所有の実ディレクトリに限り、シンボリックリンクや他人が書き込める共有ディレクトリは使えません。
+
+自動取得には公開アクセス可能なリポジトリと、該当版の公開済み Release が必要です。非公開 Git の認証はダウンローダーへ渡されません。404 の場合はリポジトリと Release の公開状態を確認してください。ソースからのビルドも引き続き利用できます。
 
 ## 実行
 
-以下は CPU に合った Linux 実行ファイルを入手済みの場合の例です。Go が必要なのはソースからビルドするときだけです。現在 GitHub Release にビルド済み添付ファイルはありません。クローン後は末尾の手順でビルドしてください。
+以下は [Releases](https://github.com/YWQ211/Rocky_Linux_deployment_tool/releases) から CPU に合った Linux 実行ファイルを取得済みの場合の例です。Go が必要なのはソースからビルドするときだけです。
 
 ```bash
 chmod +x rockdev-linux-amd64
@@ -155,7 +178,7 @@ sudo dnf --setopt=reposdir="$HOME/offline-python" --disablerepo='*' --enablerepo
 
 Git と **Go 1.22 以上**が必要です。先に `git --version`、`go version` を確認してください。DNF の Go が要件より古い場合は [Go 公式の導入手順](https://go.dev/doc/install)で適切なコンパイラーを用意してください。
 
-`git clone` で取得するのはソースです。`dist/` は Git 管理外なので、実行前にビルドが必要です。現在のリポジトリは非公開でアクセス権が必要ですが、公開後は同じ HTTPS URL からリポジトリ権限なしでクローンできます。URL にトークンを含めないでください。クローンだけでシステム設定は変わりません。
+この節はソースを変更する開発者向けです。一般ユーザーは上記の `./rockdev` を使えます。`dist/` は Git 管理外で、ローカルビルドには Go が必要です。公開 HTTPS リポジトリは権限なしでクローンできますが、非公開ならアクセス権が必要です。URL にトークンを含めないでください。クローンだけでシステム設定は変わりません。
 
 ```bash
 git clone https://github.com/YWQ211/Rocky_Linux_deployment_tool.git
@@ -178,4 +201,6 @@ Windows では `scripts/build.ps1` で Linux 向けにクロスビルドでき�
 
 ## 公開とライセンスの状態
 
-現在 `LICENSE` はなく、GitHub Release にビルド済み添付ファイルもありません。Public にすると第三者がソースを取得できます。オープンソースとして公開するには、利用・変更・再配布の権限を示すライセンスを管理者が選んで追加する必要があります。[GitHub のライセンス説明](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)を参照してください。
+本プロジェクトは [MIT ライセンス](LICENSE)、著作権表記 `2026 YWQ211` です。著作権とライセンスの表記を残せば、利用・変更・再配布・商用利用が可能です。ソフトウェアは無保証で提供します。実行ファイルに含まれる Go ランタイムの表記は [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) にあります。
+
+リポジトリの公開設定は管理者が別に操作します。ライセンスを追加しても非公開リポジトリは自動公開されません。[管理者向け公開手順](docs/publishing.md)を参照してください。

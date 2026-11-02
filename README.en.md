@@ -14,11 +14,34 @@ Documentation: [Full feature guide](docs/release-1.0.en.md) · [VM guide](docs/v
 
 A Go CLI for Rocky Linux. It checks the system, switches package mirrors, creates a local RPM repository and installs development tools.
 
-For a first installation, start with [Build](#build). Cloning gets the source; it does not install Rockdev or provision a development environment.
+Regular users can run the launcher in the checkout without installing Go. Developers changing the program can use [Build](#build).
+
+## Clone and run
+
+On Rocky Linux 8/9/10, x86_64 or aarch64:
+
+```bash
+git clone https://github.com/YWQ211/Rocky_Linux_deployment_tool.git
+cd Rocky_Linux_deployment_tool
+./rockdev
+```
+
+The first run needs network access, `curl` or `wget`, and `sha256sum`. The launcher downloads this checkout's fixed Release version, verifies it against `release/SHA256SUMS`, caches it and opens the menu. It does not follow latest automatically. Maintainers update the version and pins; users obtain those updates with `git pull`. Starting the launcher does not install packages with DNF.
+
+```bash
+./rockdev doctor
+./rockdev --lang en
+./rockdev --lang ja
+sudo ./rockdev env install python go
+```
+
+Cached executables are verified on every run and can start without a network connection. Package installation still needs network access or an offline repository. User cache defaults to `~/.cache/rockdev/`, with an absolute `XDG_CACHE_HOME` supported. Root/sudo uses `/var/cache/rockdev/` instead of executing a user cache. Cache paths must be real, owned directories, not symlinks or shared directories writable by other users.
+
+Automatic downloads require a publicly accessible repository and a published matching Release. Private Git clone credentials are not passed to the downloader; for a 404, check repository and Release visibility. Local source builds remain available.
 
 ## Run
 
-These examples assume you already have a compiled Linux binary for your architecture. Go is needed to build from source, but not to run the binary. No precompiled GitHub Release attachments have been published yet; after cloning, follow the build instructions below.
+These examples assume you obtained a compiled Linux binary for your architecture from [Releases](https://github.com/YWQ211/Rocky_Linux_deployment_tool/releases). Go is needed to build from source, but not to run the binary.
 
 ```bash
 chmod +x rockdev-linux-amd64
@@ -155,7 +178,7 @@ sudo dnf --setopt=reposdir="$HOME/offline-python" --disablerepo='*' --enablerepo
 
 You need Git and **Go 1.22 or later**. Check `git --version` and `go version` first. DNF may provide an older Go version; prepare a suitable compiler using the [official Go installation guide](https://go.dev/doc/install) if needed.
 
-`git clone` copies source code. The `dist/` directory is not tracked in Git, so build an executable before running it. The repository is currently private and requires access permission. If it becomes public, the same HTTPS clone URL can be used without repository access authorization. Do not put tokens in URLs. Cloning does not change system configuration.
+This section is for developers changing the source; regular users can use `./rockdev` above. The `dist/` directory is not tracked, and local builds need Go. Public HTTPS clones need no repository access authorization; private repositories still require permission. Do not put tokens in URLs. Cloning does not change system configuration.
 
 ```bash
 git clone https://github.com/YWQ211/Rocky_Linux_deployment_tool.git
@@ -178,4 +201,6 @@ Windows users can cross-build Linux binaries with `scripts/build.ps1`. A Windows
 
 ## Publication and license status
 
-There is currently no `LICENSE` file or precompiled GitHub Release attachment. Making the repository public lets others obtain the source. An open-source release also needs a license selected by the maintainer to define use, modification and redistribution rights. See [GitHub's licensing documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
+This project uses the [MIT license](LICENSE), copyright `2026 YWQ211`. Use, modification, redistribution and commercial use are permitted with the copyright and license notices retained. The software is provided as is, without warranty. Notices for the Go runtime included in binaries are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+
+Repository visibility is controlled separately by the maintainer; adding a license does not make a private repository public. See the [maintainer publishing guide](docs/publishing.md).

@@ -1,0 +1,114 @@
+#!/bin/sh
+# MIT licensed. Fetch only the fixed, checksum-pinned release for this checkout.
+set -eu
+umask 077
+
+OS_RELEASE_FILE=/etc/os-release
+die() { printf 'rockdev: %s\n' "$*" >&2; exit 1; }
+
+[ "$(uname -s)" = Linux ] || die 'System deployment requires Rocky Linux.'
+[ -r "$OS_RELEASE_FILE" ] || die 'Cannot read /etc/os-release.'
+os_value() { awk -F= -v key="$1" '$1 == key {gsub(/["\047]/, "", $2); print $2; exit}' "$OS_RELEASE_FILE"; }
+[ "$(os_value ID)" = rocky ] || die 'Only Rocky Linux is supported.'
+os_version=$(os_value VERSION_ID)
+printf '%s\n' "$os_version" | grep -Eq '^(8|9|10)(\.[0-9]+)*$' || die 'Supported Rocky versions: 8, 9, 10.'
+case "$(uname -m)" in
+    x86_64|amd64) arch=amd64 ;;
+    aarch64|arm64) arch=arm64 ;;
+    *) die 'Supported architectures: x86_64 and aarch64.' ;;
+esac
+
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+[ -r "$script_dir/release/VERSION" ] || die 'Missing release/VERSION; run from a complete checkout.'
+version=$(cat "$script_dir/release/VERSION")
+printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || die 'Invalid release version.'
+asset=rockdev-linux-$arch
+[ -r "$script_dir/release/SHA256SUMS" ] || die 'Missing release/SHA256SUMS.'
+expected=$(awk -v asset="$asset" '$2 == asset {print $1}' "$script_dir/release/SHA256SUMS")
+[ "${#expected}" = 64 ] || die 'Missing or duplicate release checksum.'
+case "$expected" in *[!0-9a-f]*) die 'Invalid release checksum.' ;; esac
+command -v sha256sum >/dev/null 2>&1 || die 'sha256sum is required (Rocky coreutils).'
+
+uid=$(id -u)
+if [ "$uid" = 0 ]; then
+    # Never execute a caller-controlled user cache through sudo.
+    cache_home=/var/cache
+else
+    cache_home=${XDG_CACHE_HOME:-${HOME:?HOME is required}/.cache}
+fi
+case "$cache_home" in /*) ;; *) die 'Cache directory must be an absolute path.' ;; esac
+
+check_parents() {
+    check_path=$1
+    while [ "$check_path" != / ] && [ -n "$check_path" ]; do
+        [ ! -L "$check_path" ] || die 'Cache paths must not contain symbolic links.'
+        if [ -e "$check_path" ]; then
+            [ -d "$check_path" ] || die 'Cache paths must contain directories.'
+            parent_owner=$(stat -c %u -- "$check_path") || die 'Cannot inspect cache path owner.'
+            [ "$parent_owner" = 0 ] || [ "$parent_owner" = "$uid" ] ||
+                die 'Cache ancestor has an untrusted owner.'
+            parent_mode=$(stat -c %a -- "$check_path") || die 'Cannot inspect cache path mode.'
+            if [ "$((0$parent_mode & 022))" != 0 ] && [ "$((0$parent_mode & 01000))" = 0 ]; then
+                die 'Cache path has an unsafe writable ancestor.'
+            fi
+        fi
+        check_path=${check_path%/*}
+    done
+}
+private_dir() {
+    check_parents "$1"
+    mkdir -p -- "$1" || die 'Cannot create cache directory.'
+    [ -d "$1" ] && [ ! -L "$1" ] || die 'Unsafe cache directory.'
+    [ "$(stat -c %u -- "$1")" = "$uid" ] || die 'Cache directory has a different owner.'
+    chmod 700 -- "$1" || die 'Cannot protect cache directory.'
+}
+
+# Protect the user-selected cache base as well as the tool's directories.
+if [ "$uid" != 0 ]; then
+    check_parents "$cache_home"
+    mkdir -p -- "$cache_home" || die 'Cannot create cache base.'
+    [ "$(stat -c %u -- "$cache_home")" = "$uid" ] || die 'Cache base has a different owner.'
+    base_mode=$(stat -c %a -- "$cache_home")
+    [ "$((0$base_mode & 022))" = 0 ] || die 'Cache base is writable by other users.'
+fi
+cache_root=${cache_home%/}/rockdev
+private_dir "$cache_root"
+private_dir "$cache_root/$version"
+cache_dir=$cache_root/$version/$arch
+private_dir "$cache_dir"
+binary=$cache_dir/$asset
+[ ! -L "$binary" ] || die 'Cached executable must not be a symbolic link.'
+[ ! -e "$binary" ] || [ -f "$binary" ] || die 'Cached executable is not a regular file.'
+
+valid_binary() {
+    [ -f "$1" ] && [ ! -L "$1" ] &&
+        [ "$(stat -c %u -- "$1")" = "$uid" ] &&
+        [ "$(sha256sum -- "$1" | awk '{print $1}')" = "$expected" ]
+}
+
+if ! valid_binary "$binary"; then
+    url=https://github.com/YWQ211/Rocky_Linux_deployment_tool/releases/download/v$version/$asset
+    printf 'rockdev: downloading %s (v%s); verifying repository-pinned SHA256.\n' "$asset" "$version" >&2
+    tmp_dir=$(mktemp -d "$cache_dir/.download.XXXXXXXX") || die 'Cannot create download directory.'
+    cleanup() { rm -f -- "$tmp_dir/$asset"; rmdir -- "$tmp_dir" 2>/dev/null || :; }
+    trap cleanup EXIT
+    trap 'exit 1' HUP INT TERM
+    if command -v curl >/dev/null 2>&1; then
+        curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+            --tlsv1.2 --connect-timeout 10 --max-time 180 --output "$tmp_dir/$asset" "$url" ||
+            die 'Download failed. Check network access and whether this Release is published.'
+    elif command -v wget >/dev/null 2>&1; then
+        wget --https-only --max-redirect=5 --timeout=30 --tries=2 -O "$tmp_dir/$asset" "$url" ||
+            die 'Download failed. Check network access and whether this Release is published.'
+    else
+        die 'Install curl or wget, then run ./rockdev again.'
+    fi
+    valid_binary "$tmp_dir/$asset" || die 'SHA256 verification failed; executable was not run.'
+    chmod 700 -- "$tmp_dir/$asset"
+    mv -f -- "$tmp_dir/$asset" "$binary"
+    cleanup
+    trap - EXIT HUP INT TERM
+fi
+valid_binary "$binary" || die 'Cached executable failed verification.'
+[ -x "$binary" ] || die 'Cached executable is not executable; remove the cache and retry.'
+exec "$binary" "$@"
